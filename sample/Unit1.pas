@@ -18,26 +18,32 @@ type
     ButtonClear: TButton;
     ButtonCreateTable: TButton;
     procedure ButtonConnectClick(Sender: TObject);
-    procedure ButtonGetDataClick(Sender: TObject);
-    procedure ButtonGetParamDataClick(Sender: TObject);
+    procedure OnButtonGetDataClick(Sender: TObject);
     procedure ButtonPrepareClick(Sender: TObject);
     procedure ButtonClearClick(Sender: TObject);
     procedure ButtonSetDataClick(Sender: TObject);
+    procedure ButtonGetDataClick(Sender: TObject);
     procedure ButtonCreateTableClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
   private
-    procedure ButtonGetPreparedParamData(Sender: TObject);
     function CheckIsConnected: boolean;
+    procedure ButtonGetParamDataClick(Sender: TObject);
+    procedure ButtonGetPreparedParamData(Sender: TObject);
+    procedure ButtonGetParamDataByNameClick(Sender: TObject);
     { Private declarations }
   public
     { Public declarations }
     procedure AddToLog(const str: string);
   end;
 
+  TOnButtonClick = procedure (Sender: TObject) of object;
+
 var
   Form1: TForm1;
   iPQ: IPostgres;
   QueryStmt: IPostgresStmt;
+  OnGetDataIdx: integer;
+  OnButtonClickEvents: array[0..2]of TOnButtonClick;
 
 const
   LINE_WRAP = #$d#$a;
@@ -76,6 +82,17 @@ end;
 procedure TForm1.FormCreate(Sender: TObject);
 begin
     Randomize;
+    OnGetDataIdx:= low(OnButtonClickEvents);
+    OnButtonClickEvents[0]:= ButtonGetPreparedParamData;
+    OnButtonClickEvents[1]:= ButtonGetParamDataClick;
+    OnButtonClickEvents[2]:= ButtonGetParamDataByNameClick;
+end;
+
+procedure TForm1.OnButtonGetDataClick(Sender: TObject);
+begin
+    OnButtonClickEvents[OnGetDataIdx](Sender);
+    inc(OnGetDataIdx);
+    OnGetDataIdx:= OnGetDataIdx mod length(OnButtonClickEvents);
 end;
 
 procedure TForm1.ButtonConnectClick(Sender: TObject);
@@ -119,6 +136,7 @@ var
   pq: IPostgresQuery;
   p: TParam;
   stuff: array[0..$F]of byte;
+  name: string;
 const
   QUERY = 'insert into sample (name, i_data) values ($1, $2) returning id';
 begin
@@ -126,19 +144,12 @@ begin
 
     AddToLog(LINE_WRAP + 'filling table "sample"');
 
-    p.nParams:= 2;
-    p.paramTypes:= nil;
-    setlength(p.paramValues, p.nParams);
-    setlength(p.paramLengths, p.nParams);
-    setlength(p.paramFormats, p.nParams);
-    for i := 0 to p.nParams - 1 do
-      p.paramFormats[i]:= 1;
-    p.resultFormat:= 1;
+    PQFillParamDefaults(p, 2, PG_PARAMTYPE_BINARY, PG_PARAMTYPE_BINARY);
 
     name:= '';
     for i := 0 to 10 do begin
       name:= name + char($41 + i);
-      p.paramValues[0]:= PChar(name);
+      p.paramValues[0]:= PAnsiChar(name);
       p.paramLengths[0]:= length(name);
       for j := low(stuff) to high(stuff) do
         stuff[j]:= random($FF);
@@ -195,23 +206,59 @@ begin
     if not(CheckIsConnected) then exit;
 
     AddToLog(LINE_WRAP + QUERY);
-    iPQ.Lock;
-    try
-      pq:= iPQ.ExecQuery(QUERY);
-      if pq = nil then exit;
-      if pq.Status <> PGRES_TUPLES_OK then begin
-        AddToLog(iPQ.GetError);
-        exit;
-      end;
 
-      for i := 0 to pq.RecordCount - 1 do begin
-        temp:= '';
-        for j := 0 to pq.FieldCount - 1 do
-          temp:= temp + pq.Value[i, j] + #9;
-        AddToLog(temp);
-      end;
-    finally
-      iPQ.Unlock;
+    pq:= iPQ.ExecQuery(QUERY);
+    if pq = nil then exit;
+    if pq.Status <> PGRES_TUPLES_OK then begin
+      AddToLog(iPQ.GetError);
+      exit;
+    end;
+
+    for i := 0 to pq.RecordCount - 1 do begin
+      temp:= '';
+      for j := 0 to pq.FieldCount - 1 do
+        temp:= temp + pq.Value[i, j] + #9;
+      AddToLog(temp);
+    end;
+end;
+
+procedure TForm1.ButtonGetParamDataByNameClick(Sender: TObject);
+var
+  pq: IPostgresQuery;
+  i, j, value, len: integer;
+  temp: string;
+  p: TParam;
+  stuff: array[0..$F]of byte;
+const
+  QUERY = 'select * from sample where id = $1';
+begin
+    if not(CheckIsConnected) then exit;
+
+    value:= random(high(stuff));
+    AddToLog(LINE_WRAP + QUERY + ' by name, query param = ' + IntToStr(value) + ' result');
+    value:= bswap(value);
+
+    PQFillParamDefaults(p, 1, PG_PARAMTYPE_BINARY, PG_PARAMTYPE_BINARY);
+    p.paramValues[0]:= @value;
+    p.paramLengths[0]:= sizeof(value);
+
+    pq:= iPQ.ExecQueryParams(QUERY, @p);
+    if pq = nil then exit;
+    if pq.Status <> PGRES_TUPLES_OK then begin
+      AddToLog(iPQ.GetError);
+      exit;
+    end;
+
+    for i := 0 to pq.RecordCount - 1 do begin
+      AddToLog('id = ' + IntToStr(bswap(PInteger(pq.ValueByName[0, 'id'])^)));
+      AddToLog('name = ' + pq.ValueByName[0, 'name']);
+      len:= pq.ValueLen[0, 2];
+      if len > sizeof(stuff) then len:= sizeof(stuff);
+      move(pq.Value[0, 2]^, stuff, len);
+      temp:= '';
+      for j := 0 to len - 1 do
+        temp:= temp + IntToHex(stuff[j], 2);
+      AddToLog('value = ' + temp);
     end;
 end;
 
@@ -227,43 +274,32 @@ const
 begin
     if not(CheckIsConnected) then exit;
 
-    value:= bswap(integer(random(high(stuff))));
+    value:= random(high(stuff));
+    AddToLog(LINE_WRAP + QUERY + ' by param, query param = ' + IntToStr(value) + ' result');
+    value:= bswap(value);
 
-    p.nParams:= 1;
-    p.paramTypes:= nil;
-    setlength(p.paramValues, p.nParams);
+    PQFillParamDefaults(p, 1, PG_PARAMTYPE_BINARY, PG_PARAMTYPE_BINARY);
     p.paramValues[0]:= @value;
-    setlength(p.paramLengths, p.nParams);
     p.paramLengths[0]:= sizeof(value);
-    setlength(p.paramFormats, p.nParams);
-    p.paramFormats[0]:= 1;
-    p.resultFormat:= 1;
 
-    AddToLog(LINE_WRAP + QUERY + ' result');
-    iPQ.Lock;
-    try
-      pq:= iPQ.ExecQueryParams(QUERY, @p);
-      if pq = nil then exit;
-      if pq.Status <> PGRES_TUPLES_OK then begin
-        AddToLog(iPQ.GetError);
-        exit;
-      end;
-
-      for i := 0 to pq.RecordCount - 1 do begin
-        AddToLog('id = ' + IntToStr(bswap(PInteger(pq.Value[0, 0])^)));
-        AddToLog('name = ' + pq.Value[0, 1]); 
-        len:= pq.ValueLen[0, 2];
-        if len > sizeof(stuff) then len:= sizeof(stuff);        
-        move(pq.Value[0, 2]^, stuff, len);
-        temp:= '';
-        for j := 0 to len - 1 do
-          temp:= temp + IntToHex(stuff[j], 2);
-        AddToLog(temp);
-      end;
-    finally
-      iPQ.Unlock;
+    pq:= iPQ.ExecQueryParams(QUERY, @p);
+    if pq = nil then exit;
+    if pq.Status <> PGRES_TUPLES_OK then begin
+      AddToLog(iPQ.GetError);
+      exit;
     end;
-    ButtonGetParamData.OnClick:= ButtonGetPreparedParamData;
+
+    for i := 0 to pq.RecordCount - 1 do begin
+      AddToLog('id = ' + IntToStr(bswap(PInteger(pq.Value[0, 0])^)));
+      AddToLog('name = ' + pq.Value[0, 1]);
+      len:= pq.ValueLen[0, 2];
+      if len > sizeof(stuff) then len:= sizeof(stuff);
+      move(pq.Value[0, 2]^, stuff, len);
+      temp:= '';
+      for j := 0 to len - 1 do
+        temp:= temp + IntToHex(stuff[j], 2);
+      AddToLog('value = ' + temp);
+    end;
 end;
 
 procedure TForm1.ButtonGetPreparedParamData(Sender: TObject);
@@ -280,19 +316,14 @@ begin
       exit;
     end;
 
-    value:= bswap(integer(random(high(stuff))));
+    value:= random(high(stuff));
+    AddToLog(LINE_WRAP + 'prepared ' + QUERY_PREPARED + ', query param = ' + IntToStr(value) + 'result');
+    value:= bswap(value);
 
-    p.nParams:= 1;
-    p.paramTypes:= nil;
-    setlength(p.paramValues, p.nParams);
+    PQFillParamDefaults(p, 1, PG_PARAMTYPE_BINARY, PG_PARAMTYPE_BINARY);
     p.paramValues[0]:= @value;
-    setlength(p.paramLengths, p.nParams);
     p.paramLengths[0]:= sizeof(value);
-    setlength(p.paramFormats, p.nParams);
-    p.paramFormats[0]:= 1; 
-    p.resultFormat:= 1;
 
-    AddToLog(LINE_WRAP + 'prepared ' + QUERY_PREPARED + ' result');
     iPQ.Lock;
     try
       pq:= iPQ.ExecQueryPrepared(QueryStmt.StmtName, @p);
@@ -311,12 +342,11 @@ begin
         temp:= '';
         for j := 0 to len - 1 do
           temp:= temp + IntToHex(stuff[j], 2);
-        AddToLog(temp);
+      AddToLog('value = ' + temp);
       end;
     finally
       iPQ.Unlock;
     end;
-    ButtonGetParamData.OnClick:= ButtonGetParamDataClick;
 end;
 
 procedure TForm1.ButtonClearClick(Sender: TObject);

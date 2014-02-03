@@ -36,7 +36,7 @@ Type
   size_t = dword;
   Psize_t  = ^size_t;
   PIntegers = array of integer;
-  PPChars = array of PChar;
+  PPChars = array of PAnsiChar;
 
 {Type
 P_PQconninfoOption  = ^_PQconninfoOption;
@@ -110,6 +110,10 @@ const
 { Note: depending on this is deprecated; use PQconnectionNeedsPassword().  }
 
    PQnoPasswordSupplied = 'fe_sendauth: no password supplied\n';
+   
+   PG_PARAMTYPE_STRING	= 0;
+   PG_PARAMTYPE_BINARY	= 1;
+
 type
 
    PConnStatusType = ^ConnStatusType;
@@ -193,9 +197,9 @@ type
 
    PpgNotify = ^pgNotify;
    pgNotify = record
-        relname : PChar;
+        relname : PAnsiChar;
         be_pid : longint;
-        extra : PChar;
+        extra : PAnsiChar;
         next : PpgNotify;
      end;
 { Function types for notice-handling callbacks  }
@@ -204,7 +208,7 @@ type
    PQnoticeReceiver = procedure (arg:pointer; res:PPGresult); cdecl;
 
 
-   PQnoticeProcessor = procedure (arg:pointer; message:PChar); cdecl;
+   PQnoticeProcessor = procedure (arg:pointer; message:PAnsiChar); cdecl;
 { Print options for PQprint()  }
 
    Ppqbool = ^pqbool;
@@ -229,10 +233,10 @@ type
         html3 : pqbool;
         expanded : pqbool;
         pager : pqbool;
-        fieldSep : PChar;
-        tableOpt : PChar;
-        caption : PChar;
-        fieldName : ^PChar;
+        fieldSep : PAnsiChar;
+        tableOpt : PAnsiChar;
+        caption : PAnsiChar;
+        fieldName : ^PAnsiChar;
      end;
    PQprintOpt = _PQprintOpt;
    PPQprintOpt = ^PQprintOpt;
@@ -259,12 +263,12 @@ type
 
    P_PQconninfoOption = ^_PQconninfoOption;
    _PQconninfoOption = record
-        keyword : PChar;
-        envvar : PChar;
-        compiled : PChar;
-        val : PChar;
-        _label : PChar;
-        dispchar : PChar;
+        keyword : PAnsiChar;
+        envvar : PAnsiChar;
+        compiled : PAnsiChar;
+        val : PAnsiChar;
+        _label : PAnsiChar;
+        dispchar : PAnsiChar;
         dispsize : longint;
      end;
    PQconninfoOption = _PQconninfoOption;
@@ -299,7 +303,7 @@ type
 
    PpgresAttDesc = ^pgresAttDesc;
    pgresAttDesc = record
-        name : PChar;
+        name : PAnsiChar;
         tableid : Oid;
         columnid : longint;
         format : longint;
@@ -316,13 +320,13 @@ type
 { Asynchronous (non-blocking)  }
 
 
-function PQconnectStart(conninfo:PChar):PPGconn; cdecl;
+function PQconnectStart(conninfo:PAnsiChar):PPGconn; cdecl;
 function PQconnectPoll(conn:PPGconn):PostgresPollingStatusType; cdecl;
 { Synchronous (blocking)  }
 
-function PQconnectdb(conninfo:PChar):PPGconn; cdecl;
-function PQsetdbLogin(pghost:PChar; pgport:PChar; pgoptions:PChar; pgtty:PChar; dbName:PChar;
-           login:PChar; pwd:PChar):PPGconn; cdecl;
+function PQconnectdb(conninfo:PAnsiChar):PPGconn; cdecl;
+function PQsetdbLogin(pghost:PAnsiChar; pgport:PAnsiChar; pgoptions:PAnsiChar; pgtty:PAnsiChar; dbName:PAnsiChar;
+           login:PAnsiChar; pwd:PAnsiChar):PPGconn; cdecl;
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : PPGconn;
 
 { close the current connection and free the PGconn data structure  }
@@ -331,7 +335,7 @@ procedure PQfinish(conn:PPGconn); cdecl;
 function PQconndefaults:PPQconninfoOption; cdecl;
 { parse connection options in same way as PQconnectdb  }
 
-function PQconninfoParse(conninfo:PChar; errmsg:PPchar):PPQconninfoOption; cdecl;
+function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl;
 { free the data structure returned by PQconndefaults() or PQconninfoParse()  }
 procedure PQconninfoFree(connOptions:PPQconninfoOption); cdecl;
 {
@@ -348,31 +352,31 @@ function PQgetCancel(conn:PPGconn):PPGcancel; cdecl;
 { free a cancel structure  }
 procedure PQfreeCancel(cancel:PPGcancel); cdecl;
 { issue a cancel request  }
-function PQcancel(cancel:PPGcancel; errbuf:PChar; errbufsize:longint):longint; cdecl;
+function PQcancel(cancel:PPGcancel; errbuf:PAnsiChar; errbufsize:longint):longint; cdecl;
 { backwards compatible version of PQcancel; not thread-safe  }
 function PQrequestCancel(conn:PPGconn):longint; cdecl;
 
 { Accessor functions for PGconn objects  }
 
-function PQdb(conn:PPGconn):PChar; cdecl;
-function PQuser(conn:PPGconn):PChar; cdecl;
-function PQpass(conn:PPGconn):PChar; cdecl;
-function PQhost(conn:PPGconn):PChar; cdecl;
-function PQport(conn:PPGconn):PChar; cdecl;
-function PQtty(conn:PPGconn):PChar; cdecl;
-function PQoptions(conn:PPGconn):PChar; cdecl;
+function PQdb(conn:PPGconn):PAnsiChar; cdecl;
+function PQuser(conn:PPGconn):PAnsiChar; cdecl;
+function PQpass(conn:PPGconn):PAnsiChar; cdecl;
+function PQhost(conn:PPGconn):PAnsiChar; cdecl;
+function PQport(conn:PPGconn):PAnsiChar; cdecl;
+function PQtty(conn:PPGconn):PAnsiChar; cdecl;
+function PQoptions(conn:PPGconn):PAnsiChar; cdecl;
 function PQstatus(conn:PPGconn):ConnStatusType; cdecl;
 function PQtransactionStatus(conn:PPGconn):PGTransactionStatusType; cdecl;
-function PQparameterStatus(conn:PPGconn; paramName:PChar):PChar; cdecl;
+function PQparameterStatus(conn:PPGconn; paramName:PAnsiChar):PAnsiChar; cdecl;
 function PQprotocolVersion(conn:PPGconn):longint; cdecl;
 function PQserverVersion(conn:PPGconn):longint; cdecl;
-function PQerrorMessage(conn:PPGconn):PChar; cdecl;
+function PQerrorMessage(conn:PPGconn):PAnsiChar; cdecl;
 function PQsocket(conn:PPGconn):longint; cdecl;
 function PQbackendPID(conn:PPGconn):longint; cdecl;
 function PQconnectionNeedsPassword(conn:PPGconn):longint; cdecl;
 function PQconnectionUsedPassword(conn:PPGconn):longint; cdecl;
 function PQclientEncoding(conn:PPGconn):longint; cdecl;
-function PQsetClientEncoding(conn:PPGconn; encoding:PChar):longint; cdecl;
+function PQsetClientEncoding(conn:PPGconn; encoding:PAnsiChar):longint; cdecl;
 { Get the OpenSSL structure associated with a connection. Returns NULL for
  * unencrypted connections or if any other TLS library is in use.  }
 function PQgetssl(conn:PPGconn):pointer; cdecl;
@@ -400,19 +404,19 @@ function PQregisterThreadLock(newhandler:pgthreadlock_t):pgthreadlock_t; cdecl;
 { === in fe-exec.c ===  }
 { Simple synchronous query  }
 
-function PQexec(conn:PPGconn; query:PChar):PPGresult; cdecl;
-function PQexecParams(conn:PPGconn; command:PChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
+function PQexec(conn:PPGconn; query:PAnsiChar):PPGresult; cdecl;
+function PQexecParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths: PIntegers; paramFormats: PIntegers; resultFormat:longint):PPGresult; cdecl;
-function PQprepare(conn:PPGconn; stmtName:PChar; query:PChar; nParams:longint; paramTypes:POid):PPGresult; cdecl;
-function PQexecPrepared(conn:PPGconn; stmtName:PChar; nParams:longint; paramValues: PPChars; paramLengths:PIntegers;
+function PQprepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):PPGresult; cdecl;
+function PQexecPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:PIntegers;
            paramFormats:PIntegers; resultFormat:longint):PPGresult; cdecl;
 { Interface for multiple-result or asynchronous queries  }
 
-function PQsendQuery(conn:PPGconn; query:PChar):longint; cdecl;
-function PQsendQueryParams(conn:PPGconn; command:PChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
+function PQsendQuery(conn:PPGconn; query:PAnsiChar):longint; cdecl;
+function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint; cdecl;
-function PQsendPrepare(conn:PPGconn; stmtName:PChar; query:PChar; nParams:longint; paramTypes:POid):longint; cdecl;
-function PQsendQueryPrepared(conn:PPGconn; stmtName:PChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
+function PQsendPrepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):longint; cdecl;
+function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
            paramFormats:Plongint; resultFormat:longint):longint; cdecl;
 function PQgetResult(conn:PPGconn):PPGresult; cdecl;
 { Routines for managing an asynchronous query  }
@@ -423,14 +427,14 @@ function PQnotifies(conn:PPGconn):PPGnotify; cdecl;
 
 { Routines for copy in/out  }
 
-function PQputCopyData(conn:PPGconn; buffer:PChar; nbytes:longint):longint; cdecl;
-function PQputCopyEnd(conn:PPGconn; errormsg:PChar):longint; cdecl;
+function PQputCopyData(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl;
+function PQputCopyEnd(conn:PPGconn; errormsg:PAnsiChar):longint; cdecl;
 function PQgetCopyData(conn:PPGconn; buffer:PPchar; async:longint):longint; cdecl;
 { Deprecated routines for copy in/out  }
-function PQgetline(conn:PPGconn; _string:PChar; length:longint):longint; cdecl;
-function PQputline(conn:PPGconn; _string:PChar):longint; cdecl;
-function PQgetlineAsync(conn:PPGconn; buffer:PChar; bufsize:longint):longint; cdecl;
-function PQputnbytes(conn:PPGconn; buffer:PChar; nbytes:longint):longint; cdecl;
+function PQgetline(conn:PPGconn; _string:PAnsiChar; length:longint):longint; cdecl;
+function PQputline(conn:PPGconn; _string:PAnsiChar):longint; cdecl;
+function PQgetlineAsync(conn:PPGconn; buffer:PAnsiChar; bufsize:longint):longint; cdecl;
+function PQputnbytes(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl;
 function PQendcopy(conn:PPGconn):longint; cdecl;
 { Set blocking/nonblocking connection to the backend  }
 function PQsetnonblocking(conn:PPGconn; arg:longint):longint; cdecl;
@@ -449,27 +453,27 @@ function PQfn(conn:PPGconn; fnid:longint; result_buf:Plongint; result_len:Plongi
 { Accessor functions for PGresult objects  }
 
 function PQresultStatus(res:PPGresult):ExecStatusType; cdecl;
-function PQresStatus(status:ExecStatusType):PChar; cdecl;
-function PQresultErrorMessage(res:PPGresult):PChar; cdecl;
-function PQresultErrorField(res:PPGresult; fieldcode:longint):PChar; cdecl;
+function PQresStatus(status:ExecStatusType):PAnsiChar; cdecl;
+function PQresultErrorMessage(res:PPGresult):PAnsiChar; cdecl;
+function PQresultErrorField(res:PPGresult; fieldcode:longint):PAnsiChar; cdecl;
 function PQntuples(res:PPGresult):longint; cdecl;
 function PQnfields(res:PPGresult):longint; cdecl;
 function PQbinaryTuples(res:PPGresult):longint; cdecl;
-function PQfname(res:PPGresult; field_num:longint):PChar; cdecl;
-function PQfnumber(res:PPGresult; field_name:PChar):longint; cdecl;
+function PQfname(res:PPGresult; field_num:longint):PAnsiChar; cdecl;
+function PQfnumber(res:PPGresult; field_name:PAnsiChar):longint; cdecl;
 function PQftable(res:PPGresult; field_num:longint):Oid; cdecl;
 function PQftablecol(res:PPGresult; field_num:longint):longint; cdecl;
 function PQfformat(res:PPGresult; field_num:longint):longint; cdecl;
 function PQftype(res:PPGresult; field_num:longint):Oid; cdecl;
 function PQfsize(res:PPGresult; field_num:longint):longint; cdecl;
 function PQfmod(res:PPGresult; field_num:longint):longint; cdecl;
-function PQcmdStatus(res:PPGresult):PChar; cdecl;
-function PQoidStatus(res:PPGresult):PChar; cdecl;
+function PQcmdStatus(res:PPGresult):PAnsiChar; cdecl;
+function PQoidStatus(res:PPGresult):PAnsiChar; cdecl;
 { old and ugly  }
 function PQoidValue(res:PPGresult):Oid; cdecl;
 { new and improved  }
-function PQcmdTuples(res:PPGresult):PChar; cdecl;
-function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PChar; cdecl;
+function PQcmdTuples(res:PPGresult):PAnsiChar; cdecl;
+function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PAnsiChar; cdecl;
 function PQgetlength(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
 function PQgetisnull(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
 function PQnparams(res:PPGresult):longint; cdecl;
@@ -477,10 +481,10 @@ function PQparamtype(res:PPGresult; param_num:longint):Oid; cdecl;
 
 { Describe prepared statements and portals  }
 
-function PQdescribePrepared(conn:PPGconn; stmt:PChar):PPGresult; cdecl;
-function PQdescribePortal(conn:PPGconn; portal:PChar):PPGresult; cdecl;
-function PQsendDescribePrepared(conn:PPGconn; stmt:PChar):longint; cdecl;
-function PQsendDescribePortal(conn:PPGconn; portal:PChar):longint; cdecl;
+function PQdescribePrepared(conn:PPGconn; stmt:PAnsiChar):PPGresult; cdecl;
+function PQdescribePortal(conn:PPGconn; portal:PAnsiChar):PPGresult; cdecl;
+function PQsendDescribePrepared(conn:PPGconn; stmt:PAnsiChar):longint; cdecl;
+function PQsendDescribePortal(conn:PPGconn; portal:PAnsiChar):longint; cdecl;
 
 { Delete a PGresult  }
 procedure PQclear(res:PPGresult); cdecl;
@@ -499,15 +503,15 @@ function PQmakeEmptyPGresult(conn:PPGconn; status:ExecStatusType):PPGresult; cde
 function PQcopyResult(src:PPGresult; flags:longint):PPGresult; cdecl;
 function PQsetResultAttrs(res:PPGresult; numAttributes:longint; attDescs:PPGresAttDesc):longint; cdecl;
 function PQresultAlloc(res:PPGresult; nBytes:size_t):pointer; cdecl;
-function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PChar; len:longint):longint; cdecl;
+function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PAnsiChar; len:longint):longint; cdecl;
 
 { Quoting strings before inclusion in queries.  }
 
-function PQescapeStringConn(conn:PPGconn; c_to:PChar; from:PChar; length:size_t; error:Plongint):size_t; cdecl;
+function PQescapeStringConn(conn:PPGconn; c_to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl;
 function PQescapeByteaConn(conn:PPGconn; from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl;
 function PQunescapeBytea(strtext:PByte; retbuflen:Psize_t):PByte; cdecl;
 { These forms are deprecated!  }
-function PQescapeString(c_to:PChar; from:PChar; length:size_t):size_t; cdecl;
+function PQescapeString(c_to:PAnsiChar; from:PAnsiChar; length:size_t):size_t; cdecl;
 function PQescapeBytea(from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl;
 { === in fe-print.c ===  }
 { output stream  }
@@ -524,7 +528,7 @@ procedure PQprint(fout:PFILE; res:PPGresult; ps:PPQprintOpt); cdecl;
 
 { field separator  }
 { display headers?  }
-procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PChar; printHeader:longint; 
+procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PAnsiChar; printHeader:longint; 
             quiet:longint); cdecl;
 
 { output stream  }
@@ -536,9 +540,9 @@ procedure PQprintTuples(res:PPGresult; fout:PFILE; printAttName:longint; terseOu
 { Large-object access routines  }
 function lo_open(conn:PPGconn; lobjId:Oid; mode:longint):longint; cdecl;
 function lo_close(conn:PPGconn; fd:longint):longint; cdecl;
-function lo_read(conn:PPGconn; fd:longint; buf:PChar; len:size_t):longint; cdecl;
+function lo_read(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl;
 
-function lo_write(conn:PPGconn; fd:longint; buf:PChar; len:size_t):longint; cdecl;
+function lo_write(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl;
 function lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint; cdecl;
 function lo_creat(conn:PPGconn; mode:longint):Oid; cdecl;
 function lo_create(conn:PPGconn; lobjId:Oid):Oid; cdecl;
@@ -546,70 +550,70 @@ function lo_tell(conn:PPGconn; fd:longint):longint; cdecl;
 function lo_truncate(conn:PPGconn; fd:longint; len:size_t):longint; cdecl;
 function lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl;
 
-function lo_import(conn:PPGconn; filename:PChar):Oid; cdecl;
+function lo_import(conn:PPGconn; filename:PAnsiChar):Oid; cdecl;
 
-function lo_import_with_oid(conn:PPGconn; filename:PChar; lobjId:Oid):Oid; cdecl;
+function lo_import_with_oid(conn:PPGconn; filename:PAnsiChar; lobjId:Oid):Oid; cdecl;
 
-function lo_export(conn:PPGconn; lobjId:Oid; filename:PChar):longint; cdecl;
+function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl;
 { === in fe-misc.c ===  }
 { Determine length of multibyte encoded char at *s  }
 
-function PQmblen(s:PChar; encoding:longint):longint; cdecl;
+function PQmblen(s:PAnsiChar; encoding:longint):longint; cdecl;
 { Determine display length of multibyte encoded char at *s  }
 
-function PQdsplen(s:PChar; encoding:longint):longint; cdecl;
+function PQdsplen(s:PAnsiChar; encoding:longint):longint; cdecl;
 { Get encoding id from environment variable PGCLIENTENCODING  }
 function PQenv2encoding:longint; cdecl;
 { === in fe-auth.c ===  }
 
 
-function PQencryptPassword(passwd:PChar; user:PChar):PChar; cdecl;
+function PQencryptPassword(passwd:PAnsiChar; user:PAnsiChar):PAnsiChar; cdecl;
 { === in encnames.c ===  }
 
-function pg_char_to_encoding(name:PChar):longint; cdecl;
+function pg_char_to_encoding(name:PAnsiChar):longint; cdecl;
 
-function pg_encoding_to_char(encoding:longint):PChar; cdecl;
+function pg_encoding_to_char(encoding:longint):PAnsiChar; cdecl;
 function pg_valid_server_encoding_id(encoding:longint):longint; cdecl;
 
 
 
 implementation
 
-function PQconnectStart(conninfo:PChar):PPGconn; cdecl; external libpq;
+function PQconnectStart(conninfo:PAnsiChar):PPGconn; cdecl; external libpq;
 function PQconnectPoll(conn:PPGconn):PostgresPollingStatusType; cdecl; external libpq;
-function PQconnectdb(conninfo:PChar):PPGconn; cdecl; external libpq;
-function PQsetdbLogin(pghost:PChar; pgport:PChar; pgoptions:PChar; pgtty:PChar; dbName:PChar;
-           login:PChar; pwd:PChar):PPGconn; cdecl; external libpq;
+function PQconnectdb(conninfo:PAnsiChar):PPGconn; cdecl; external libpq;
+function PQsetdbLogin(pghost:PAnsiChar; pgport:PAnsiChar; pgoptions:PAnsiChar; pgtty:PAnsiChar; dbName:PAnsiChar;
+           login:PAnsiChar; pwd:PAnsiChar):PPGconn; cdecl; external libpq;
 procedure PQfinish(conn:PPGconn); cdecl; external libpq;
 function PQconndefaults:PPQconninfoOption; cdecl; external libpq;
-function PQconninfoParse(conninfo:PChar; errmsg:PPchar):PPQconninfoOption; cdecl; external libpq;
+function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl; external libpq;
 procedure PQconninfoFree(connOptions:PPQconninfoOption); cdecl; external libpq;
 function PQresetStart(conn:PPGconn):longint; cdecl; external libpq;
 function PQresetPoll(conn:PPGconn):PostgresPollingStatusType; cdecl; external libpq;
 procedure PQreset(conn:PPGconn); cdecl; external libpq;
 function PQgetCancel(conn:PPGconn):PPGcancel; cdecl; external libpq;
 procedure PQfreeCancel(cancel:PPGcancel); cdecl; external libpq;
-function PQcancel(cancel:PPGcancel; errbuf:PChar; errbufsize:longint):longint; cdecl; external libpq;
+function PQcancel(cancel:PPGcancel; errbuf:PAnsiChar; errbufsize:longint):longint; cdecl; external libpq;
 function PQrequestCancel(conn:PPGconn):longint; cdecl; external libpq;
-function PQdb(conn:PPGconn):PChar; cdecl; external libpq;
-function PQuser(conn:PPGconn):PChar; cdecl; external libpq;
-function PQpass(conn:PPGconn):PChar; cdecl; external libpq;
-function PQhost(conn:PPGconn):PChar; cdecl; external libpq;
-function PQport(conn:PPGconn):PChar; cdecl; external libpq;
-function PQtty(conn:PPGconn):PChar; cdecl; external libpq;
-function PQoptions(conn:PPGconn):PChar; cdecl; external libpq;
+function PQdb(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQuser(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQpass(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQhost(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQport(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQtty(conn:PPGconn):PAnsiChar; cdecl; external libpq;
+function PQoptions(conn:PPGconn):PAnsiChar; cdecl; external libpq;
 function PQstatus(conn:PPGconn):ConnStatusType; cdecl; external libpq;
 function PQtransactionStatus(conn:PPGconn):PGTransactionStatusType; cdecl; external libpq;
-function PQparameterStatus(conn:PPGconn; paramName:PChar):PChar; cdecl; external libpq;
+function PQparameterStatus(conn:PPGconn; paramName:PAnsiChar):PAnsiChar; cdecl; external libpq;
 function PQprotocolVersion(conn:PPGconn):longint; cdecl; external libpq;
 function PQserverVersion(conn:PPGconn):longint; cdecl; external libpq;
-function PQerrorMessage(conn:PPGconn):PChar; cdecl; external libpq;
+function PQerrorMessage(conn:PPGconn):PAnsiChar; cdecl; external libpq;
 function PQsocket(conn:PPGconn):longint; cdecl; external libpq;
 function PQbackendPID(conn:PPGconn):longint; cdecl; external libpq;
 function PQconnectionNeedsPassword(conn:PPGconn):longint; cdecl; external libpq;
 function PQconnectionUsedPassword(conn:PPGconn):longint; cdecl; external libpq;
 function PQclientEncoding(conn:PPGconn):longint; cdecl; external libpq;
-function PQsetClientEncoding(conn:PPGconn; encoding:PChar):longint; cdecl; external libpq;
+function PQsetClientEncoding(conn:PPGconn; encoding:PAnsiChar):longint; cdecl; external libpq;
 function PQgetssl(conn:PPGconn):pointer; cdecl; external libpq;
 procedure PQinitSSL(do_init:longint); cdecl; external libpq;
 procedure PQinitOpenSSL(do_ssl:longint; do_crypto:longint); cdecl; external libpq;
@@ -619,29 +623,29 @@ procedure PQuntrace(conn:PPGconn); cdecl; external libpq;
 function PQsetNoticeReceiver(conn:PPGconn; proc:PQnoticeReceiver; arg:pointer):PQnoticeReceiver; cdecl; external libpq;
 function PQsetNoticeProcessor(conn:PPGconn; proc:PQnoticeProcessor; arg:pointer):PQnoticeProcessor; cdecl; external libpq;
 function PQregisterThreadLock(newhandler:pgthreadlock_t):pgthreadlock_t; cdecl; external libpq;
-function PQexec(conn:PPGconn; query:PChar):PPGresult; cdecl; external libpq;
-function PQexecParams(conn:PPGconn; command:PChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
+function PQexec(conn:PPGconn; query:PAnsiChar):PPGresult; cdecl; external libpq;
+function PQexecParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths: PIntegers; paramFormats: PIntegers; resultFormat:longint):PPGresult; cdecl; external libpq;
-function PQprepare(conn:PPGconn; stmtName:PChar; query:PChar; nParams:longint; paramTypes:POid):PPGresult; cdecl; external libpq;
-function PQexecPrepared(conn:PPGconn; stmtName:PChar; nParams:longint; paramValues: PPChars; paramLengths:PIntegers;
+function PQprepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):PPGresult; cdecl; external libpq;
+function PQexecPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:PIntegers;
            paramFormats:PIntegers; resultFormat:longint):PPGresult; cdecl; external libpq;
-function PQsendQuery(conn:PPGconn; query:PChar):longint; cdecl; external libpq;
-function PQsendQueryParams(conn:PPGconn; command:PChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
+function PQsendQuery(conn:PPGconn; query:PAnsiChar):longint; cdecl; external libpq;
+function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint; cdecl; external libpq;
-function PQsendPrepare(conn:PPGconn; stmtName:PChar; query:PChar; nParams:longint; paramTypes:POid):longint; cdecl; external libpq;
-function PQsendQueryPrepared(conn:PPGconn; stmtName:PChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
+function PQsendPrepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):longint; cdecl; external libpq;
+function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
            paramFormats:Plongint; resultFormat:longint):longint; cdecl; external libpq;
 function PQgetResult(conn:PPGconn):PPGresult; cdecl; external libpq;
 function PQisBusy(conn:PPGconn):longint; cdecl; external libpq;
 function PQconsumeInput(conn:PPGconn):longint; cdecl; external libpq;
 function PQnotifies(conn:PPGconn):PPGnotify; cdecl; external libpq;
-function PQputCopyData(conn:PPGconn; buffer:PChar; nbytes:longint):longint; cdecl; external libpq;
-function PQputCopyEnd(conn:PPGconn; errormsg:PChar):longint; cdecl; external libpq;
+function PQputCopyData(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl; external libpq;
+function PQputCopyEnd(conn:PPGconn; errormsg:PAnsiChar):longint; cdecl; external libpq;
 function PQgetCopyData(conn:PPGconn; buffer:PPchar; async:longint):longint; cdecl; external libpq;
-function PQgetline(conn:PPGconn; _string:PChar; length:longint):longint; cdecl; external libpq;
-function PQputline(conn:PPGconn; _string:PChar):longint; cdecl; external libpq;
-function PQgetlineAsync(conn:PPGconn; buffer:PChar; bufsize:longint):longint; cdecl; external libpq;
-function PQputnbytes(conn:PPGconn; buffer:PChar; nbytes:longint):longint; cdecl; external libpq;
+function PQgetline(conn:PPGconn; _string:PAnsiChar; length:longint):longint; cdecl; external libpq;
+function PQputline(conn:PPGconn; _string:PAnsiChar):longint; cdecl; external libpq;
+function PQgetlineAsync(conn:PPGconn; buffer:PAnsiChar; bufsize:longint):longint; cdecl; external libpq;
+function PQputnbytes(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl; external libpq;
 function PQendcopy(conn:PPGconn):longint; cdecl; external libpq;
 function PQsetnonblocking(conn:PPGconn; arg:longint):longint; cdecl; external libpq;
 function PQisnonblocking(conn:PPGconn):longint; cdecl; external libpq;
@@ -650,68 +654,68 @@ function PQflush(conn:PPGconn):longint; cdecl; external libpq;
 function PQfn(conn:PPGconn; fnid:longint; result_buf:Plongint; result_len:Plongint; result_is_int:longint;
            args:PPQArgBlock; nargs:longint):PPGresult; cdecl; external libpq;
 function PQresultStatus(res:PPGresult):ExecStatusType; cdecl; external libpq;
-function PQresStatus(status:ExecStatusType):PChar; cdecl; external libpq;
-function PQresultErrorMessage(res:PPGresult):PChar; cdecl; external libpq;
-function PQresultErrorField(res:PPGresult; fieldcode:longint):PChar; cdecl; external libpq;
+function PQresStatus(status:ExecStatusType):PAnsiChar; cdecl; external libpq;
+function PQresultErrorMessage(res:PPGresult):PAnsiChar; cdecl; external libpq;
+function PQresultErrorField(res:PPGresult; fieldcode:longint):PAnsiChar; cdecl; external libpq;
 function PQntuples(res:PPGresult):longint; cdecl; external libpq;
 function PQnfields(res:PPGresult):longint; cdecl; external libpq;
 function PQbinaryTuples(res:PPGresult):longint; cdecl; external libpq;
-function PQfname(res:PPGresult; field_num:longint):PChar; cdecl; external libpq;
-function PQfnumber(res:PPGresult; field_name:PChar):longint; cdecl; external libpq;
+function PQfname(res:PPGresult; field_num:longint):PAnsiChar; cdecl; external libpq;
+function PQfnumber(res:PPGresult; field_name:PAnsiChar):longint; cdecl; external libpq;
 function PQftable(res:PPGresult; field_num:longint):Oid; cdecl; external libpq;
 function PQftablecol(res:PPGresult; field_num:longint):longint; cdecl; external libpq;
 function PQfformat(res:PPGresult; field_num:longint):longint; cdecl; external libpq;
 function PQftype(res:PPGresult; field_num:longint):Oid; cdecl; external libpq;
 function PQfsize(res:PPGresult; field_num:longint):longint; cdecl; external libpq;
 function PQfmod(res:PPGresult; field_num:longint):longint; cdecl; external libpq;
-function PQcmdStatus(res:PPGresult):PChar; cdecl; external libpq;
-function PQoidStatus(res:PPGresult):PChar; cdecl; external libpq;
+function PQcmdStatus(res:PPGresult):PAnsiChar; cdecl; external libpq;
+function PQoidStatus(res:PPGresult):PAnsiChar; cdecl; external libpq;
 function PQoidValue(res:PPGresult):Oid; cdecl; external libpq;
-function PQcmdTuples(res:PPGresult):PChar; cdecl; external libpq;
-function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PChar; cdecl; external libpq;
+function PQcmdTuples(res:PPGresult):PAnsiChar; cdecl; external libpq;
+function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PAnsiChar; cdecl; external libpq;
 function PQgetlength(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl; external libpq;
 function PQgetisnull(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl; external libpq;
 function PQnparams(res:PPGresult):longint; cdecl; external libpq;
 function PQparamtype(res:PPGresult; param_num:longint):Oid; cdecl; external libpq;
-function PQdescribePrepared(conn:PPGconn; stmt:PChar):PPGresult; cdecl; external libpq;
-function PQdescribePortal(conn:PPGconn; portal:PChar):PPGresult; cdecl; external libpq;
-function PQsendDescribePrepared(conn:PPGconn; stmt:PChar):longint; cdecl; external libpq;
-function PQsendDescribePortal(conn:PPGconn; portal:PChar):longint; cdecl; external libpq;
+function PQdescribePrepared(conn:PPGconn; stmt:PAnsiChar):PPGresult; cdecl; external libpq;
+function PQdescribePortal(conn:PPGconn; portal:PAnsiChar):PPGresult; cdecl; external libpq;
+function PQsendDescribePrepared(conn:PPGconn; stmt:PAnsiChar):longint; cdecl; external libpq;
+function PQsendDescribePortal(conn:PPGconn; portal:PAnsiChar):longint; cdecl; external libpq;
 procedure PQclear(res:PPGresult); cdecl; external libpq;
 procedure PQfreemem(ptr:pointer); cdecl; external libpq;
 function PQmakeEmptyPGresult(conn:PPGconn; status:ExecStatusType):PPGresult; cdecl; external libpq;
 function PQcopyResult(src:PPGresult; flags:longint):PPGresult; cdecl; external libpq;
 function PQsetResultAttrs(res:PPGresult; numAttributes:longint; attDescs:PPGresAttDesc):longint; cdecl; external libpq;
 function PQresultAlloc(res:PPGresult; nBytes:size_t):pointer; cdecl; external libpq;
-function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PChar; len:longint):longint; cdecl; external libpq;
-function PQescapeStringConn(conn:PPGconn; c_to:PChar; from:PChar; length:size_t; error:Plongint):size_t; cdecl; external libpq;
+function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PAnsiChar; len:longint):longint; cdecl; external libpq;
+function PQescapeStringConn(conn:PPGconn; c_to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl; external libpq;
 function PQescapeByteaConn(conn:PPGconn; from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl; external libpq;
 function PQunescapeBytea(strtext:PByte; retbuflen:Psize_t):PByte; cdecl; external libpq;
-function PQescapeString(c_to:PChar; from:PChar; length:size_t):size_t; cdecl; external libpq;
+function PQescapeString(c_to:PAnsiChar; from:PAnsiChar; length:size_t):size_t; cdecl; external libpq;
 function PQescapeBytea(from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl; external libpq;
 procedure PQprint(fout:PFILE; res:PPGresult; ps:PPQprintOpt); cdecl; external libpq;
-procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PChar; printHeader:longint;
+procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PAnsiChar; printHeader:longint;
             quiet:longint); cdecl; external libpq;
 procedure PQprintTuples(res:PPGresult; fout:PFILE; printAttName:longint; terseOutput:longint; width:longint); cdecl; external libpq;
 function lo_open(conn:PPGconn; lobjId:Oid; mode:longint):longint; cdecl; external libpq;
 function lo_close(conn:PPGconn; fd:longint):longint; cdecl; external libpq;
-function lo_read(conn:PPGconn; fd:longint; buf:PChar; len:size_t):longint; cdecl; external libpq;
-function lo_write(conn:PPGconn; fd:longint; buf:PChar; len:size_t):longint; cdecl; external libpq;
+function lo_read(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl; external libpq;
+function lo_write(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl; external libpq;
 function lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint; cdecl; external libpq;
 function lo_creat(conn:PPGconn; mode:longint):Oid; cdecl; external libpq;
 function lo_create(conn:PPGconn; lobjId:Oid):Oid; cdecl; external libpq;
 function lo_tell(conn:PPGconn; fd:longint):longint; cdecl; external libpq;
 function lo_truncate(conn:PPGconn; fd:longint; len:size_t):longint; cdecl; external libpq;
 function lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl; external libpq;
-function lo_import(conn:PPGconn; filename:PChar):Oid; cdecl; external libpq;
-function lo_import_with_oid(conn:PPGconn; filename:PChar; lobjId:Oid):Oid; cdecl; external libpq;
-function lo_export(conn:PPGconn; lobjId:Oid; filename:PChar):longint; cdecl; external libpq;
-function PQmblen(s:PChar; encoding:longint):longint; cdecl; external libpq;
-function PQdsplen(s:PChar; encoding:longint):longint; cdecl; external libpq;
+function lo_import(conn:PPGconn; filename:PAnsiChar):Oid; cdecl; external libpq;
+function lo_import_with_oid(conn:PPGconn; filename:PAnsiChar; lobjId:Oid):Oid; cdecl; external libpq;
+function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl; external libpq;
+function PQmblen(s:PAnsiChar; encoding:longint):longint; cdecl; external libpq;
+function PQdsplen(s:PAnsiChar; encoding:longint):longint; cdecl; external libpq;
 function PQenv2encoding:longint; cdecl; external libpq;
-function PQencryptPassword(passwd:PChar; user:PChar):PChar; cdecl; external libpq;
-function pg_char_to_encoding(name:PChar):longint; cdecl; external libpq;
-function pg_encoding_to_char(encoding:longint):PChar; cdecl; external libpq;
+function PQencryptPassword(passwd:PAnsiChar; user:PAnsiChar):PAnsiChar; cdecl; external libpq;
+function pg_char_to_encoding(name:PAnsiChar):longint; cdecl; external libpq;
+function pg_encoding_to_char(encoding:longint):PAnsiChar; cdecl; external libpq;
 function pg_valid_server_encoding_id(encoding:longint):longint; cdecl; external libpq;
 
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : PPGconn;

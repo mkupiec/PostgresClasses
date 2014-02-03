@@ -1,9 +1,9 @@
 object Form1: TForm1
-  Left = 165
-  Top = 113
-  Width = 610
-  Height = 435
+  Left = 0
+  Top = 0
   Caption = 'Form1'
+  ClientHeight = 397
+  ClientWidth = 594
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -56,7 +56,7 @@ object Form1: TForm1
       Height = 25
       Caption = 'Get P Data'
       TabOrder = 3
-      OnClick = ButtonGetParamDataClick
+      OnClick = OnButtonGetDataClick
     end
     object ButtonSetData: TButton
       Left = 258

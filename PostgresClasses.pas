@@ -91,19 +91,25 @@ type
     function GetQueryStatusStr: string;
     function GetRecordCount: Integer;
     function GetFieldCount: Integer;
-    function GetValue(row, field: integer): PChar;
+    function GetValue(row, field: integer): PAnsiChar;
     function GetValueLen(row, field: integer): integer;
     function GetFieldIndex(const fname: string): integer;
+    function GetFieldName(idx: integer): string;
     function GetValueIsNull(row, field: integer): boolean;
+    function GetValueByName(row: integer; const fname: string): PAnsiChar;
+    function GetValueLenByName(row: integer; const fname: string): integer;
 
     property Status: ExecStatusType read GetQueryStatus;
     property StatusStr: string read GetQueryStatusStr;
     property FieldCount: Integer read GetFieldCount;
     property RecordCount: Integer read GetRecordCount;
-    property Value[row, field: Integer]: PChar read GetValue;
+    property Value[row, field: Integer]: PAnsiChar read GetValue;
     property ValueLen[row, field: Integer]: integer read GetValueLen;
     property FieldIndex[const fname: string]: integer read GetFieldIndex;
+    property FieldName[Index: Integer]: string read GetFieldName;
     property ValueIsNull[row, field: Integer]: boolean read GetValueIsNull;
+    property ValueByName[row: integer; const FieldName: string]: PAnsiChar read GetValueByName;
+    property ValueLenByName[row: integer; const FieldName: string]: integer read GetValueLenByName;
   end;
 
   TPostgresQuery = class(TInterfacedObject, IPostgresQuery)
@@ -114,10 +120,13 @@ type
     function GetQueryStatusStr: string;
     function GetRecordCount: Integer;
     function GetFieldCount: Integer;
-    function GetValue(row, field: integer): PChar;
+    function GetValue(row, field: integer): PAnsiChar;
     function GetValueLen(row, field: integer): integer;
     function GetFieldIndex(const fname: string): integer;
+    function GetFieldName(idx: integer): string;
     function GetValueIsNull(row, field: integer): boolean;
+    function GetValueByName(row: integer; const fname: string): PAnsiChar;
+    function GetValueLenByName(row: integer; const fname: string): integer;
   public
     constructor Create(APostgres: IPostgres; res: PPGresult; params: PParams);
     destructor Destroy; override;
@@ -126,12 +135,13 @@ type
     property StatusStr: string read GetQueryStatusStr;
     property FieldCount: Integer read GetFieldCount;
     property RecordCount: Integer read GetRecordCount;
-    property Value[row, field: Integer]: PChar read GetValue;
+    property Value[row, field: Integer]: PAnsiChar read GetValue;
     property ValueLen[row, field: Integer]: integer read GetValueLen;
     property FieldIndex[const fname: string]: integer read GetFieldIndex;
+    property FieldName[Index: Integer]: string read GetFieldName;
     property ValueIsNull[row, field: Integer]: boolean read GetValueIsNull;
-    //property FieldName[Index: Integer]: string read GetFieldName; todo
-    //property ValueByName[const FieldName: string]: string read GetValueByName; todo
+    property ValueByName[row: integer; const FieldName: string]: PAnsiChar read GetValueByName;
+    property ValueLenByName[row: integer; const FieldName: string]: integer read GetValueLenByName;
   end;
 
   IPostgresStmt = interface(IInterface)
@@ -161,7 +171,31 @@ type
     property StmtName: string read GetStmtName;
   end;
 
+  procedure PQFillParamDefaults(var param: TParam; count, data_types, result_type: integer);
+
 implementation
+
+procedure PQFillParamDefaults(var param: TParam; count, data_types, result_type: integer);
+var
+  i: integer;
+begin
+    param.nParams:= count;
+    param.paramTypes:= nil;
+    if count <= 0 then begin
+      param.paramValues:= nil;
+      param.paramLengths:= nil;
+      param.paramFormats:= nil;
+      param.paramFormats:= nil;
+    end
+    else begin
+      setlength(param.paramValues, param.nParams);
+      setlength(param.paramLengths, param.nParams);
+      setlength(param.paramFormats, param.nParams);
+      for i := 0 to param.nParams - 1 do
+        param.paramFormats[i]:= data_types;
+    end;
+    param.resultFormat:= result_type;
+end;
 
 { TPostgres }
 
@@ -196,7 +230,7 @@ end;
 
 function TPostgres.Connect: Boolean;
 begin
-    FConnection := PQsetdbLogin(PChar(FHost), PChar(FPort), nil, nil, PChar(FDatabase), PChar(FUser), PChar(FPassword));
+    FConnection := PQsetdbLogin(PAnsiChar(FHost), PAnsiChar(FPort), nil, nil, PAnsiChar(FDatabase), PAnsiChar(FUser), PAnsiChar(FPassword));
     FConnected := PQstatus(FConnection) = CONNECTION_OK;
     result:= FConnected;
     if not(FConnected) then begin
@@ -241,7 +275,7 @@ end;
 
 function TPostgres.SendQuery(const SQL: String): boolean;
 begin
-    result:= PQsendQuery(FConnection, PChar(SQL)) <> 0;
+    result:= PQsendQuery(FConnection, PAnsiChar(SQL)) <> 0;
 end;
 
 function TPostgres.ExecQuery(const SQL: String): IPostgresQuery;
@@ -251,7 +285,7 @@ begin
     result := nil;
     if not(FConnected) then exit;
 
-    pr := PQexec(FConnection, PChar(SQL));
+    pr := PQexec(FConnection, PAnsiChar(SQL));
     result:= TPostgresQuery.Create(self, pr, nil);
 end;
 
@@ -262,7 +296,7 @@ begin
     result := nil;
     if not(FConnected) then exit;
 
-    pr := PQexecParams(FConnection, PChar(SQL), params.nParams, params.paramTypes, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
+    pr := PQexecParams(FConnection, PAnsiChar(SQL), params.nParams, params.paramTypes, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
     result:= TPostgresQuery.Create(self, pr, params);
 end;
 
@@ -273,7 +307,7 @@ begin
     result := nil;
     if not(FConnected) then exit;
 
-    pr := PQprepare(FConnection, PChar(StmtName), PChar(SQL), params.nParams, params.paramTypes);
+    pr := PQprepare(FConnection, PAnsiChar(StmtName), PAnsiChar(SQL), params.nParams, params.paramTypes);
     result:= TPostgresStmt.Create(self, StmtName, pr, params);
 end;
 
@@ -284,7 +318,7 @@ begin
     result := nil;
     if not(FConnected) then exit;
 
-    pr := PQexecPrepared(FConnection, PChar(StmtName), params.nParams, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
+    pr := PQexecPrepared(FConnection, PAnsiChar(StmtName), params.nParams, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
     result:= TPostgresQuery.Create(self, pr, params);
 end;
 
@@ -322,9 +356,17 @@ begin
     result := PQnfields(FPPGresult);
 end;
 
-function TPostgresQuery.GetValue(row, field: integer): PChar;
+function TPostgresQuery.GetValue(row, field: integer): PAnsiChar;
 begin
     result:= PQgetvalue(FPPGresult, row, field);
+end;
+
+function TPostgresQuery.GetValueByName(row: integer; const fname: string): PAnsiChar;
+var
+  idx: integer;
+begin
+    idx:= GetFieldIndex(fname);
+    result:= GetValue(row, idx);
 end;
 
 function TPostgresQuery.GetValueLen(row, field: integer): integer;
@@ -332,9 +374,22 @@ begin
     result:= PQgetlength(FPPGresult, row, field);
 end;
 
+function TPostgresQuery.GetValueLenByName(row: integer; const fname: string): integer;
+var
+  idx: integer;
+begin
+    idx:= GetFieldIndex(fname);
+    result:= PQgetlength(FPPGresult, row, idx);
+end;
+
 function TPostgresQuery.GetFieldIndex(const fname: string): integer;
 begin
     result:= PQfnumber(FPPGresult, PAnsiChar(fname));
+end;
+
+function TPostgresQuery.GetFieldName(idx: integer): string;
+begin
+    result:= PQfname(FPPGresult, idx);
 end;
 
 function TPostgresQuery.GetValueIsNull(row, field: integer): boolean;
