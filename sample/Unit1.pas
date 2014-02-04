@@ -30,9 +30,7 @@ type
     procedure ButtonGetParamDataClick(Sender: TObject);
     procedure ButtonGetPreparedParamData(Sender: TObject);
     procedure ButtonGetParamDataByNameClick(Sender: TObject);
-    { Private declarations }
   public
-    { Public declarations }
     procedure AddToLog(const str: string);
   end;
 
@@ -50,8 +48,6 @@ const
   QUERY_PREPARED = 'select * from sample where id = $1';
 
 implementation
-
-uses Unit2;
 
 {$R *.dfm}
 
@@ -86,6 +82,7 @@ begin
     OnButtonClickEvents[0]:= ButtonGetPreparedParamData;
     OnButtonClickEvents[1]:= ButtonGetParamDataClick;
     OnButtonClickEvents[2]:= ButtonGetParamDataByNameClick;
+    ButtonConnectClick(nil);
 end;
 
 procedure TForm1.OnButtonGetDataClick(Sender: TObject);
@@ -97,10 +94,7 @@ end;
 
 procedure TForm1.ButtonConnectClick(Sender: TObject);
 begin
-    FormConnParams.ShowModal;
-    if FormConnParams.ModalResult <> mrOK then exit;
-
-    iPQ:= TPostgres.Create('', '', FormConnParams.EditDatabase.Text, FormConnParams.EditLogin.Text, FormConnParams.EditPassword.Text);
+    iPQ:= TPostgres.Create('', '', 'postgres', 'postgres', 'root');
     if iPQ.Connect then
       AddToLog('connected')
     else AddToLog(iPQ.LastErrorString);

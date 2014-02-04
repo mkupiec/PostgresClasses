@@ -1,9 +1,9 @@
 object Form1: TForm1
-  Left = 0
-  Top = 0
+  Left = 489
+  Top = 199
+  Width = 610
+  Height = 435
   Caption = 'Form1'
-  ClientHeight = 397
-  ClientWidth = 594
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
