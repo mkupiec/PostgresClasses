@@ -487,24 +487,21 @@ extern unsigned char *PQescapeBytea(const unsigned char *from, size_t from_lengt
 
 /* === in fe-print.c === */
 
-extern void
-PQprint(FILE *fout,				/* output stream */
+extern void PQprint(FILE *fout,				/* output stream */
 		const PGresult *res,
 		const PQprintOpt *ps);	/* option structure */
 
 /*
  * really old printing routines
  */
-extern void
-PQdisplayTuples(const PGresult *res,
+extern void PQdisplayTuples(const PGresult *res,
 				FILE *fp,		/* where to send the output */
 				int fillAlign,	/* pad the fields with spaces */
 				const char *fieldSep,	/* field separator */
 				int printHeader,	/* display headers? */
 				int quiet);
 
-extern void
-PQprintTuples(const PGresult *res,
+extern void PQprintTuples(const PGresult *res,
 			  FILE *fout,		/* output stream */
 			  int printAttName, /* print attribute names */
 			  int terseOutput,	/* delimiter bars */

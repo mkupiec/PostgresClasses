@@ -90,8 +90,12 @@ typedef enum
 								 * backend */
 	PGRES_NONFATAL_ERROR,		/* notice or warning message */
 	PGRES_FATAL_ERROR,			/* query failed */
+	
+/* New in Postgres 9.3.2: */	
 	PGRES_COPY_BOTH,			/* Copy In/Out data transfer in progress */
 	PGRES_SINGLE_TUPLE			/* single tuple from larger resultset */
+/* New in Postgres 9.3.2. */
+	
 } ExecStatusType;
 
 typedef enum
@@ -110,6 +114,7 @@ typedef enum
 	PQERRORS_VERBOSE			/* all the facts, ma'am */
 } PGVerbosity;
 
+/* New in Postgres 9.3.2: */	
 /*
  * PGPing - The ordering of this enum should not be altered because the
  * values are exposed externally via pg_isready.
@@ -122,6 +127,7 @@ typedef enum
 	PQPING_NO_RESPONSE,			/* could not establish connection */
 	PQPING_NO_ATTEMPT			/* connection not attempted (bad params) */
 } PGPing;
+/* New in Postgres 9.3.2. */	
 
 /* PGconn encapsulates a connection to the backend.
  * The contents of this struct are not supposed to be known to applications.
@@ -242,14 +248,22 @@ typedef struct pgresAttDesc
 /* make a new client connection to the backend */
 /* Asynchronous (non-blocking) */
 extern PGconn *PQconnectStart(const char *conninfo);
+
+/* New in Postgres 9.3.2: */	
 extern PGconn *PQconnectStartParams(const char *const * keywords,
 					 const char *const * values, int expand_dbname);
+/* New in Postgres 9.3.2. */						 
+
 extern PostgresPollingStatusType PQconnectPoll(PGconn *conn);
 
 /* Synchronous (blocking) */
 extern PGconn *PQconnectdb(const char *conninfo);
+
+/* New in Postgres 9.3.2: */	
 extern PGconn *PQconnectdbParams(const char *const * keywords,
 				  const char *const * values, int expand_dbname);
+/* New in Postgres 9.3.2. */	
+
 extern PGconn *PQsetdbLogin(const char *pghost, const char *pgport,
 			 const char *pgoptions, const char *pgtty,
 			 const char *dbName,
@@ -267,8 +281,10 @@ extern PQconninfoOption *PQconndefaults(void);
 /* parse connection options in same way as PQconnectdb */
 extern PQconninfoOption *PQconninfoParse(const char *conninfo, char **errmsg);
 
+/* New in Postgres 9.3.2: */	
 /* return the connection options used by a live connection */
 extern PQconninfoOption *PQconninfo(PGconn *conn);
+/* New in Postgres 9.3.2. */	
 
 /* free the data structure returned by PQconndefaults() or PQconninfoParse() */
 extern void PQconninfoFree(PQconninfoOption *connOptions);
@@ -397,7 +413,11 @@ extern int PQsendQueryPrepared(PGconn *conn,
 					const int *paramLengths,
 					const int *paramFormats,
 					int resultFormat);
+					
+/* New in Postgres 9.3.2: */	
 extern int	PQsetSingleRowMode(PGconn *conn);
+/* New in Postgres 9.3.2. */	
+
 extern PGresult *PQgetResult(PGconn *conn);
 
 /* Routines for managing an asynchronous query */
@@ -423,9 +443,12 @@ extern int	PQendcopy(PGconn *conn);
 extern int	PQsetnonblocking(PGconn *conn, int arg);
 extern int	PQisnonblocking(const PGconn *conn);
 extern int	PQisthreadsafe(void);
+
+/* New in Postgres 9.3.2: */	
 extern PGPing PQping(const char *conninfo);
 extern PGPing PQpingParams(const char *const * keywords,
 			 const char *const * values, int expand_dbname);
+/* New in Postgres 9.3.2. */	
 
 /* Force the write buffer to be written (or at least try) */
 extern int	PQflush(PGconn *conn);
@@ -498,8 +521,12 @@ extern int	PQsetvalue(PGresult *res, int tup_num, int field_num, char *value, in
 extern size_t PQescapeStringConn(PGconn *conn,
 				   char *to, const char *from, size_t length,
 				   int *error);
+				   
+/* New in Postgres 9.3.2: */	
 extern char *PQescapeLiteral(PGconn *conn, const char *str, size_t len);
 extern char *PQescapeIdentifier(PGconn *conn, const char *str, size_t len);
+/* New in Postgres 9.3.2. */	
+
 extern unsigned char *PQescapeByteaConn(PGconn *conn,
 				  const unsigned char *from, size_t from_length,
 				  size_t *to_length);
@@ -544,13 +571,25 @@ extern int	lo_close(PGconn *conn, int fd);
 extern int	lo_read(PGconn *conn, int fd, char *buf, size_t len);
 extern int	lo_write(PGconn *conn, int fd, const char *buf, size_t len);
 extern int	lo_lseek(PGconn *conn, int fd, int offset, int whence);
+
+/* New in Postgres 9.3.2: */	
 extern pg_int64 lo_lseek64(PGconn *conn, int fd, pg_int64 offset, int whence);
+/* New in Postgres 9.3.2. */	
+
 extern Oid	lo_creat(PGconn *conn, int mode);
 extern Oid	lo_create(PGconn *conn, Oid lobjId);
 extern int	lo_tell(PGconn *conn, int fd);
+
+/* New in Postgres 9.3.2: */	
 extern pg_int64 lo_tell64(PGconn *conn, int fd);
+/* New in Postgres 9.3.2. */	
+
 extern int	lo_truncate(PGconn *conn, int fd, size_t len);
+
+/* New in Postgres 9.3.2: */	
 extern int	lo_truncate64(PGconn *conn, int fd, pg_int64 len);
+/* New in Postgres 9.3.2. */	
+
 extern int	lo_unlink(PGconn *conn, Oid lobjId);
 extern Oid	lo_import(PGconn *conn, const char *filename);
 extern Oid	lo_import_with_oid(PGconn *conn, const char *filename, Oid lobjId);
@@ -558,8 +597,10 @@ extern int	lo_export(PGconn *conn, Oid lobjId, const char *filename);
 
 /* === in fe-misc.c === */
 
+/* New in Postgres 9.3.2: */	
 /* Get the version of the libpq library in use */
 extern int	PQlibVersion(void);
+/* New in Postgres 9.3.2. */	
 
 /* Determine length of multibyte encoded char at *s */
 extern int	PQmblen(const char *s, int encoding);
