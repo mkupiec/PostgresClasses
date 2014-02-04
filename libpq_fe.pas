@@ -726,6 +726,10 @@ function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; par
 function PQsendPrepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):longint; cdecl; external libpq;
 function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
            paramFormats:Plongint; resultFormat:longint):longint; cdecl; external libpq;
+
+// New in Postgres 9.3.2           
+function PQsetSingleRowMode(conn:PPGconn):longint; cdecl; external libpq;
+
 function PQgetResult(conn:PPGconn):PPGresult; cdecl; external libpq;
 function PQisBusy(conn:PPGconn):longint; cdecl; external libpq;
 function PQconsumeInput(conn:PPGconn):longint; cdecl; external libpq;
@@ -780,6 +784,11 @@ function PQsetResultAttrs(res:PPGresult; numAttributes:longint; attDescs:PPGresA
 function PQresultAlloc(res:PPGresult; nBytes:size_t):pointer; cdecl; external libpq;
 function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PAnsiChar; len:longint):longint; cdecl; external libpq;
 function PQescapeStringConn(conn:PPGconn; c_to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl; external libpq;
+
+// New in Postgres 9.3.2
+function PQescapeLiteral(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl; external libpq;
+function PQescapeIdentifier(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl; external libpq;
+
 function PQescapeByteaConn(conn:PPGconn; from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl; external libpq;
 function PQunescapeBytea(strtext:PByte; retbuflen:Psize_t):PByte; cdecl; external libpq;
 function PQescapeString(c_to:PAnsiChar; from:PAnsiChar; length:size_t):size_t; cdecl; external libpq;
@@ -801,6 +810,10 @@ function lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl; external libpq;
 function lo_import(conn:PPGconn; filename:PAnsiChar):Oid; cdecl; external libpq;
 function lo_import_with_oid(conn:PPGconn; filename:PAnsiChar; lobjId:Oid):Oid; cdecl; external libpq;
 function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl; external libpq;
+
+// New in Postgres 9.3.2
+function PQlibVersion:longint; cdecl; external libpq;
+
 function PQmblen(s:PAnsiChar; encoding:longint):longint; cdecl; external libpq;
 function PQdsplen(s:PAnsiChar; encoding:longint):longint; cdecl; external libpq;
 function PQenv2encoding:longint; cdecl; external libpq;
