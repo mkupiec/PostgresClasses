@@ -6,7 +6,12 @@ uses
   SysUtils, postgres_ext;
 
 {
-  Automatically converted by H2Pas 1.0.0 from libpq-fe.h
+ * postgres_ext.h defines the backend's externally visible types,
+ * such as Oid.
+  }
+  
+{
+  Automatically converted by H2Pas 1.0.0 from libpq-fe.h (Postgres 9.3.2)
   The following command line parameters were used:
     -c
     -p
@@ -39,16 +44,30 @@ Type
   PIntegers = array of integer;
   PPChars = array of PAnsiChar;
 
-{Type
+{
+Type
 P_PQconninfoOption  = ^_PQconninfoOption;
 P_PQprintOpt  = ^_PQprintOpt;
+
+// New in Postgres 9.3.2
+Pbyte  = ^byte;
+PAnsiChar  = ^char;
+
 PConnStatusType  = ^ConnStatusType;
 PExecStatusType  = ^ExecStatusType;
 PFILE  = ^FILE;
+
+// New in Postgres 9.3.2
+Plongint  = ^longint;
+
 POid  = ^Oid;
 PPGcancel  = ^PGcancel;
 PPGconn  = ^PGconn;
 PpgNotify  = ^pgNotify;
+
+// New in Postgres 9.3.2
+PPGPing  = ^PGPing;
+
 PpgresAttDesc  = ^pgresAttDesc;
 PPGresult  = ^PGresult;
 PPGTransactionStatusType  = ^PGTransactionStatusType;
@@ -58,7 +77,8 @@ PPQArgBlock  = ^PQArgBlock;
 Ppqbool  = ^pqbool;
 PPQconninfoOption  = ^PQconninfoOption;
 PPQprintOpt  = ^PQprintOpt;
-Psize_t  = ^size_t;}
+Psize_t  = ^size_t;
+}
 
 
 {-------------------------------------------------------------------------
@@ -67,10 +87,10 @@ Psize_t  = ^size_t;}
  *	  This file contains definitions for structures and
  *	  externs for functions used by frontend postgres applications.
  *
- * Portions Copyright (c) 1996-2009, PostgreSQL Global Development Group
+ * Portions Copyright (c) 1996-2013, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
- * $PostgreSQL: pgsql/src/interfaces/libpq/libpq-fe.h,v 1.147 2009/06/11 14:49:14 momjian Exp $
+ * src/interfaces/libpq/libpq-fe.h
  *
  *-------------------------------------------------------------------------
   }
@@ -88,10 +108,10 @@ const
    PG_COPYRES_NOTICEHOOKS = $08;   
 { Application-visible enum types  }
 {
-	 * Although it is okay to add to this list, values which become unused
-	 * should never be removed, nor should constants be redefined - that would
-	 * break compatibility with existing code.
-	  }
+ * Although it is okay to add to these lists, values which become unused
+ * should never be removed, nor should constants be redefined - that would
+ * break compatibility with existing code.
+  }
 { Non-blocking mode only below here  }
 {
 	 * The existence of these should never be relied upon - they should only
@@ -133,7 +153,7 @@ type
 								 * compatibility  }
 
    PPostgresPollingStatusType = ^PostgresPollingStatusType;
-   PostgresPollingStatusType = ( PGRES_POLLING_FAILED = 0,
+   PostgresPollingStatusType = ( PGRES_POLLING_FAILED = 0,    // := 0
                                  PGRES_POLLING_READING,
                                  PGRES_POLLING_WRITING,
                                  PGRES_POLLING_OK,
@@ -153,7 +173,7 @@ type
 { query failed  }
 
    PExecStatusType = ^ExecStatusType;
-   ExecStatusType = ( PGRES_EMPTY_QUERY = 0,
+   ExecStatusType = ( PGRES_EMPTY_QUERY = 0,  // := 0
                       PGRES_COMMAND_OK,
                       PGRES_TUPLES_OK,
                       PGRES_COPY_OUT,
@@ -233,10 +253,10 @@ type
         next : PpgNotify;
      end;
 { Function types for notice-handling callbacks  }
-
+(* Const before type ignored *)
 
    PQnoticeReceiver = procedure (arg:pointer; res:PPGresult); cdecl;
-
+(* Const before type ignored *)
 
    PQnoticeProcessor = procedure (arg:pointer; message:PAnsiChar); cdecl;
 { Print options for PQprint()  }
@@ -348,29 +368,49 @@ type
 { ===	in fe-connect.c ===  }
 { make a new client connection to the backend  }
 { Asynchronous (non-blocking)  }
-
+(* Const before type ignored *)
 
 function PQconnectStart(conninfo:PAnsiChar):PPGconn; cdecl;
 
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
 extern PGconn *PQconnectStartParams(const char *const * keywords,
 					 const char *const * values, int expand_dbname);
+function PQconnectStartParams(keywords:PPchar; values:PPchar; expand_dbname:longint):PPGconn; cdecl;
 /* New in Postgres 9.3.2. */ }
 
 function PQconnectPoll(conn:PPGconn):PostgresPollingStatusType; cdecl;
 { Synchronous (blocking)  }
-
+(* Const before type ignored *)
 function PQconnectdb(conninfo:PAnsiChar):PPGconn; cdecl;
 
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
 extern PGconn *PQconnectdbParams(const char *const * keywords,
 				  const char *const * values, int expand_dbname);
+function PQconnectdbParams(keywords:PPchar; values:PPchar; expand_dbname:longint):PPGconn; cdecl;				  
 /* New in Postgres 9.3.2. */ }
-
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
 function PQsetdbLogin(pghost:PAnsiChar; pgport:PAnsiChar; pgoptions:PAnsiChar; pgtty:PAnsiChar; dbName:PAnsiChar;
            login:PAnsiChar; pwd:PAnsiChar):PPGconn; cdecl;
+{ was #define dname(params) para_def_expr }
+{ argument types are unknown }
+{ return type might be wrong }
+// function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : longint) : longint;
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : PPGconn;
 
 { close the current connection and free the PGconn data structure  }
@@ -378,7 +418,7 @@ procedure PQfinish(conn:PPGconn); cdecl;
 { get info about connection options known to PQconnectdb  }
 function PQconndefaults:PPQconninfoOption; cdecl;
 { parse connection options in same way as PQconnectdb  }
-
+(* Const before type ignored *)
 function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl;
 
 // New in Postgres 9.3.2
@@ -406,25 +446,45 @@ function PQcancel(cancel:PPGcancel; errbuf:PAnsiChar; errbufsize:longint):longin
 function PQrequestCancel(conn:PPGconn):longint; cdecl;
 
 { Accessor functions for PGconn objects  }
-
+(* Const before type ignored *)
 function PQdb(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQuser(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQpass(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQhost(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQport(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQtty(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQoptions(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQstatus(conn:PPGconn):ConnStatusType; cdecl;
+(* Const before type ignored *)
 function PQtransactionStatus(conn:PPGconn):PGTransactionStatusType; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
 function PQparameterStatus(conn:PPGconn; paramName:PAnsiChar):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQprotocolVersion(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQserverVersion(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQerrorMessage(conn:PPGconn):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQsocket(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQbackendPID(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQconnectionNeedsPassword(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQconnectionUsedPassword(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQclientEncoding(conn:PPGconn):longint; cdecl;
+(* Const before type ignored *)
 function PQsetClientEncoding(conn:PPGconn; encoding:PAnsiChar):longint; cdecl;
 { Get the OpenSSL structure associated with a connection. Returns NULL for
  * unencrypted connections or if any other TLS library is in use.  }
@@ -452,19 +512,55 @@ function PQsetNoticeProcessor(conn:PPGconn; proc:PQnoticeProcessor; arg:pointer)
 function PQregisterThreadLock(newhandler:pgthreadlock_t):pgthreadlock_t; cdecl;
 { === in fe-exec.c ===  }
 { Simple synchronous query  }
-
+(* Const before type ignored *)
 function PQexec(conn:PPGconn; query:PAnsiChar):PPGresult; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+// function PQexecParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues:PPchar; 
+//            paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):PPGresult; cdecl;
 function PQexecParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths: PIntegers; paramFormats: PIntegers; resultFormat:longint):PPGresult; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
 function PQprepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):PPGresult; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+// function PQexecPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues:PPchar; paramLengths:Plongint; 
+//            paramFormats:Plongint; resultFormat:longint):PPGresult; cdecl;
 function PQexecPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:PIntegers;
            paramFormats:PIntegers; resultFormat:longint):PPGresult; cdecl;
 { Interface for multiple-result or asynchronous queries  }
-
+(* Const before type ignored *)
 function PQsendQuery(conn:PPGconn; query:PAnsiChar):longint; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+// function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues:PPchar; 
+//            paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint; cdecl;
 function PQsendQueryParams(conn:PPGconn; command:PAnsiChar; nParams:longint; paramTypes:POid; paramValues: PPChars;
            paramLengths:Plongint; paramFormats:Plongint; resultFormat:longint):longint; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
 function PQsendPrepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParams:longint; paramTypes:POid):longint; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before type ignored *)
+// function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues:PPchar; paramLengths:Plongint; 
+//            paramFormats:Plongint; resultFormat:longint):longint; cdecl;
 function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
            paramFormats:Plongint; resultFormat:longint):longint; cdecl;
 
@@ -479,26 +575,38 @@ function PQconsumeInput(conn:PPGconn):longint; cdecl;
 function PQnotifies(conn:PPGconn):PPGnotify; cdecl;
 
 { Routines for copy in/out  }
-
+(* Const before type ignored *)
 function PQputCopyData(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQputCopyEnd(conn:PPGconn; errormsg:PAnsiChar):longint; cdecl;
 function PQgetCopyData(conn:PPGconn; buffer:PPchar; async:longint):longint; cdecl;
 { Deprecated routines for copy in/out  }
 function PQgetline(conn:PPGconn; _string:PAnsiChar; length:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQputline(conn:PPGconn; _string:PAnsiChar):longint; cdecl;
 function PQgetlineAsync(conn:PPGconn; buffer:PAnsiChar; bufsize:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQputnbytes(conn:PPGconn; buffer:PAnsiChar; nbytes:longint):longint; cdecl;
 function PQendcopy(conn:PPGconn):longint; cdecl;
 { Set blocking/nonblocking connection to the backend  }
 function PQsetnonblocking(conn:PPGconn; arg:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQisnonblocking(conn:PPGconn):longint; cdecl;
 function PQisthreadsafe:longint; cdecl;
 
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern PGPing PQping(const char *conninfo);
+(* Const before type ignored *)
+function PQping(conninfo:PAnsiChar):PGPing; cdecl;
+
 extern PGPing PQpingParams(const char *const * keywords,
 			 const char *const * values, int expand_dbname);
+(* Const before type ignored *)
+(* Const before declarator ignored *)
+(* Const before type ignored *)
+(* Const before declarator ignored *)			 
+function PQpingParams(keywords:PPchar; values:PPchar; expand_dbname:longint):PGPing; cdecl;			 
 /* New in Postgres 9.3.2. */ }
 
 { Force the write buffer to be written (or at least try)  }
@@ -507,44 +615,68 @@ function PQflush(conn:PPGconn):longint; cdecl;
  * "Fast path" interface --- not really recommended for application
  * use
   }
-
+(* Const before type ignored *)
 function PQfn(conn:PPGconn; fnid:longint; result_buf:Plongint; result_len:Plongint; result_is_int:longint;
            args:PPQArgBlock; nargs:longint):PPGresult; cdecl;
 
 { Accessor functions for PGresult objects  }
-
+(* Const before type ignored *)
 function PQresultStatus(res:PPGresult):ExecStatusType; cdecl;
 function PQresStatus(status:ExecStatusType):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQresultErrorMessage(res:PPGresult):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQresultErrorField(res:PPGresult; fieldcode:longint):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQntuples(res:PPGresult):longint; cdecl;
+(* Const before type ignored *)
 function PQnfields(res:PPGresult):longint; cdecl;
+(* Const before type ignored *)
 function PQbinaryTuples(res:PPGresult):longint; cdecl;
+(* Const before type ignored *)
 function PQfname(res:PPGresult; field_num:longint):PAnsiChar; cdecl;
+(* Const before type ignored *)
+(* Const before type ignored *)
 function PQfnumber(res:PPGresult; field_name:PAnsiChar):longint; cdecl;
+(* Const before type ignored *)
 function PQftable(res:PPGresult; field_num:longint):Oid; cdecl;
+(* Const before type ignored *)
 function PQftablecol(res:PPGresult; field_num:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQfformat(res:PPGresult; field_num:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQftype(res:PPGresult; field_num:longint):Oid; cdecl;
+(* Const before type ignored *)
 function PQfsize(res:PPGresult; field_num:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQfmod(res:PPGresult; field_num:longint):longint; cdecl;
 function PQcmdStatus(res:PPGresult):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQoidStatus(res:PPGresult):PAnsiChar; cdecl;
 { old and ugly  }
+(* Const before type ignored *)
 function PQoidValue(res:PPGresult):Oid; cdecl;
 { new and improved  }
 function PQcmdTuples(res:PPGresult):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQgetvalue(res:PPGresult; tup_num:longint; field_num:longint):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQgetlength(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQgetisnull(res:PPGresult; tup_num:longint; field_num:longint):longint; cdecl;
+(* Const before type ignored *)
 function PQnparams(res:PPGresult):longint; cdecl;
+(* Const before type ignored *)
 function PQparamtype(res:PPGresult; param_num:longint):Oid; cdecl;
 
 { Describe prepared statements and portals  }
-
+(* Const before type ignored *)
 function PQdescribePrepared(conn:PPGconn; stmt:PAnsiChar):PPGresult; cdecl;
+(* Const before type ignored *)
 function PQdescribePortal(conn:PPGconn; portal:PAnsiChar):PPGresult; cdecl;
+(* Const before type ignored *)
 function PQsendDescribePrepared(conn:PPGconn; stmt:PAnsiChar):longint; cdecl;
+(* Const before type ignored *)
 function PQsendDescribePortal(conn:PPGconn; portal:PAnsiChar):longint; cdecl;
 
 { Delete a PGresult  }
@@ -555,48 +687,60 @@ procedure PQfreemem(ptr:pointer); cdecl;
 { was #define dname(params) para_def_expr }
 { argument types are unknown }
 { return type might be wrong }
+// function PQfreeNotify(ptr : longint) : longint;
 procedure PQfreeNotify(ptr : pointer);
 
 { Create and manipulate PGresults  }
 
 function PQmakeEmptyPGresult(conn:PPGconn; status:ExecStatusType):PPGresult; cdecl;
-
+(* Const before type ignored *)
 function PQcopyResult(src:PPGresult; flags:longint):PPGresult; cdecl;
 function PQsetResultAttrs(res:PPGresult; numAttributes:longint; attDescs:PPGresAttDesc):longint; cdecl;
 function PQresultAlloc(res:PPGresult; nBytes:size_t):pointer; cdecl;
 function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PAnsiChar; len:longint):longint; cdecl;
 
 { Quoting strings before inclusion in queries.  }
-
+(* Const before type ignored *)
+// function PQescapeStringConn(conn:PPGconn; to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl;
 function PQescapeStringConn(conn:PPGconn; c_to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl;
 
 // New in Postgres 9.3.2
+(* Const before type ignored *)
 function PQescapeLiteral(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl;
+(* Const before type ignored *)
 function PQescapeIdentifier(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl;
 
+(* Const before type ignored *)
+// function PQescapeByteaConn(conn:PPGconn; from:Pbyte; from_length:size_t; to_length:Psize_t):Pbyte; cdecl;
 function PQescapeByteaConn(conn:PPGconn; from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl;
+(* Const before type ignored *)
+// function PQunescapeBytea(strtext:Pbyte; retbuflen:Psize_t):Pbyte; cdecl;
 function PQunescapeBytea(strtext:PByte; retbuflen:Psize_t):PByte; cdecl;
 { These forms are deprecated!  }
+(* Const before type ignored *)
+// function PQescapeString(to:PAnsiChar; from:PAnsiChar; length:size_t):size_t; cdecl;
 function PQescapeString(c_to:PAnsiChar; from:PAnsiChar; length:size_t):size_t; cdecl;
+(* Const before type ignored *)
+// function PQescapeBytea(from:Pbyte; from_length:size_t; to_length:Psize_t):Pbyte; cdecl;
 function PQescapeBytea(from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl;
 { === in fe-print.c ===  }
 { output stream  }
-
-
+(* Const before type ignored *)
+(* Const before type ignored *)
 procedure PQprint(fout:PFILE; res:PPGresult; ps:PPQprintOpt); cdecl;
 { option structure  }
 {
  * really old printing routines
   }
-
+(* Const before type ignored *)
 { where to send the output  }
 { pad the fields with spaces  }
-
+(* Const before type ignored *)
 { field separator  }
 { display headers?  }
 procedure PQdisplayTuples(res:PPGresult; fp:PFILE; fillAlign:longint; fieldSep:PAnsiChar; printHeader:longint; 
             quiet:longint); cdecl;
-
+(* Const before type ignored *)
 { output stream  }
 { print attribute names  }
 { delimiter bars  }
@@ -607,13 +751,14 @@ procedure PQprintTuples(res:PPGresult; fout:PFILE; printAttName:longint; terseOu
 function lo_open(conn:PPGconn; lobjId:Oid; mode:longint):longint; cdecl;
 function lo_close(conn:PPGconn; fd:longint):longint; cdecl;
 function lo_read(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl;
-
+(* Const before type ignored *)
 function lo_write(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl;
 function lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint; cdecl;
 
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern pg_int64 lo_lseek64(PGconn *conn, int fd, pg_int64 offset, int whence);
+function lo_lseek64(conn:PPGconn; fd:longint; offset:pg_int64; whence:longint):pg_int64; cdecl;
 /* New in Postgres 9.3.2. */ }
 
 function lo_creat(conn:PPGconn; mode:longint):Oid; cdecl;
@@ -623,6 +768,7 @@ function lo_tell(conn:PPGconn; fd:longint):longint; cdecl;
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern pg_int64 lo_tell64(PGconn *conn, int fd);
+function lo_tell64(conn:PPGconn; fd:longint):pg_int64; cdecl;
 /* New in Postgres 9.3.2. */ }
 
 function lo_truncate(conn:PPGconn; fd:longint; len:size_t):longint; cdecl;
@@ -630,14 +776,15 @@ function lo_truncate(conn:PPGconn; fd:longint; len:size_t):longint; cdecl;
 // New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern int	lo_truncate64(PGconn *conn, int fd, pg_int64 len);
+function lo_truncate64(conn:PPGconn; fd:longint; len:pg_int64):longint; cdecl;
 /* New in Postgres 9.3.2. */ }
 
 function lo_unlink(conn:PPGconn; lobjId:Oid):longint; cdecl;
-
+(* Const before type ignored *)
 function lo_import(conn:PPGconn; filename:PAnsiChar):Oid; cdecl;
-
+(* Const before type ignored *)
 function lo_import_with_oid(conn:PPGconn; filename:PAnsiChar; lobjId:Oid):Oid; cdecl;
-
+(* Const before type ignored *)
 function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl;
 { === in fe-misc.c ===  }
 
@@ -646,21 +793,22 @@ function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl;
 function PQlibVersion:longint; cdecl;
 
 { Determine length of multibyte encoded char at *s  }
-
+(* Const before type ignored *)
 function PQmblen(s:PAnsiChar; encoding:longint):longint; cdecl;
 { Determine display length of multibyte encoded char at *s  }
-
+(* Const before type ignored *)
 function PQdsplen(s:PAnsiChar; encoding:longint):longint; cdecl;
 { Get encoding id from environment variable PGCLIENTENCODING  }
 function PQenv2encoding:longint; cdecl;
 { === in fe-auth.c ===  }
-
+(* Const before type ignored *)
+(* Const before type ignored *)
 
 function PQencryptPassword(passwd:PAnsiChar; user:PAnsiChar):PAnsiChar; cdecl;
 { === in encnames.c ===  }
-
+(* Const before type ignored *)
 function pg_char_to_encoding(name:PAnsiChar):longint; cdecl;
-
+(* Const before type ignored *)
 function pg_encoding_to_char(encoding:longint):PAnsiChar; cdecl;
 function pg_valid_server_encoding_id(encoding:longint):longint; cdecl;
 
@@ -824,15 +972,16 @@ function pg_char_to_encoding(name:PAnsiChar):longint; cdecl; external libpq;
 function pg_encoding_to_char(encoding:longint):PAnsiChar; cdecl; external libpq;
 function pg_valid_server_encoding_id(encoding:longint):longint; cdecl; external libpq;
 
+// function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : longint) : longint;
 function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : PAnsiChar) : PPGconn;
 begin
-   result:=PQsetdbLogin(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME,nil,nil);
+  // PQsetdb:=PQsetdbLogin(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME,NULL,NULL);
+  result:=PQsetdbLogin(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME,nil,nil);
 end;
 
 procedure PQfreeNotify(ptr : pointer);
 begin
    PQfreemem(ptr);
 end;
-
 
 end.
