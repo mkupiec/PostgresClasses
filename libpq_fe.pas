@@ -382,10 +382,8 @@ function PQconndefaults:PPQconninfoOption; cdecl;
 function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl;
 
 // New in Postgres 9.3.2
-{ /* New in Postgres 9.3.2: */
-/* return the connection options used by a live connection */
-extern PQconninfoOption *PQconninfo(PGconn *conn);
-/* New in Postgres 9.3.2. */ }
+// return the connection options used by a live connection 
+function PQconninfo(conn:PPGconn):PPQconninfoOption; cdecl;
 
 { free the data structure returned by PQconndefaults() or PQconninfoParse()  }
 procedure PQconninfoFree(connOptions:PPQconninfoOption); cdecl;
@@ -678,6 +676,10 @@ function PQsetdbLogin(pghost:PAnsiChar; pgport:PAnsiChar; pgoptions:PAnsiChar; p
 procedure PQfinish(conn:PPGconn); cdecl; external libpq;
 function PQconndefaults:PPQconninfoOption; cdecl; external libpq;
 function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl; external libpq;
+
+// New in Postgres 9.3.2
+function PQconninfo(conn:PPGconn):PPQconninfoOption; cdecl; external libpq;
+
 procedure PQconninfoFree(connOptions:PPQconninfoOption); cdecl; external libpq;
 function PQresetStart(conn:PPGconn):longint; cdecl; external libpq;
 function PQresetPoll(conn:PPGconn):PostgresPollingStatusType; cdecl; external libpq;
