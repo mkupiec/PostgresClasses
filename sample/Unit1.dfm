@@ -3,7 +3,7 @@ object Form1: TForm1
   Top = 199
   Width = 610
   Height = 435
-  Caption = 'Form1'
+  Caption = 'PostgreSQL demo'
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

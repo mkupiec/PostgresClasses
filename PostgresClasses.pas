@@ -7,12 +7,16 @@ unit PostgresClasses;
 
 interface
 
-uses Windows, libpq_fe, postgres_ext, SyncObjs;
+uses
+  Windows, libpq_fe, postgres_ext, SyncObjs;
 
 const
+
   DEFAULT_PORT = '5432';
   DEFAULT_HOST = 'localhost';
+
 type
+
   TNotifyEvent = procedure(Sender: TObject) of object;
 
   IPostgresQuery = interface;
@@ -20,12 +24,12 @@ type
 
   PParams = ^TParam;
   TParam = record
-    nParams:longint;
+    nParams: longint;
     paramTypes: POid;
     paramValues: PPChars;
     paramLengths: PIntegers;
     paramFormats: PIntegers;
-    resultFormat:longint;
+    resultFormat: longint;
   end;
 
   IPostgres = interface(IInterface)
@@ -179,22 +183,22 @@ procedure PQFillParamDefaults(var param: TParam; count, data_types, result_type:
 var
   i: integer;
 begin
-    param.nParams:= count;
-    param.paramTypes:= nil;
-    if count <= 0 then begin
-      param.paramValues:= nil;
-      param.paramLengths:= nil;
-      param.paramFormats:= nil;
-      param.paramFormats:= nil;
-    end
-    else begin
-      setlength(param.paramValues, param.nParams);
-      setlength(param.paramLengths, param.nParams);
-      setlength(param.paramFormats, param.nParams);
-      for i := 0 to param.nParams - 1 do
-        param.paramFormats[i]:= data_types;
-    end;
-    param.resultFormat:= result_type;
+  param.nParams:= count;
+  param.paramTypes:= nil;
+  if count <= 0 then begin
+     param.paramValues:= nil;
+     param.paramLengths:= nil;
+     param.paramFormats:= nil;
+     param.paramFormats:= nil;
+  end
+  else begin
+     setlength(param.paramValues, param.nParams);
+     setlength(param.paramLengths, param.nParams);
+     setlength(param.paramFormats, param.nParams);
+     for i := 0 to param.nParams - 1 do
+       param.paramFormats[i]:= data_types;
+  end;
+  param.resultFormat := result_type;
 end;
 
 { TPostgres }
@@ -203,8 +207,10 @@ constructor TPostgres.Create(const host, port, database, user, password: string)
 begin
   inherited Create;
   FConnected := false;
-  if length(host) = 0 then FHost := DEFAULT_HOST;
-  if length(port) = 0 then FPort := DEFAULT_PORT;
+  if length(host) = 0 then
+     FHost := DEFAULT_HOST;
+  if length(port) = 0 then
+     FPort := DEFAULT_PORT;
   FDatabase:= database;
   FUser:= user;
   FPassword:= password;
@@ -220,212 +226,214 @@ end;
 
 procedure TPostgres.Lock;
 begin
-    FCS.Enter;
+  FCS.Enter;
 end;
 
 procedure TPostgres.Unlock;
 begin
-    FCS.Leave;
+  FCS.Leave;
 end;
 
 function TPostgres.Connect: Boolean;
 begin
-    FConnection := PQsetdbLogin(PAnsiChar(FHost), PAnsiChar(FPort), nil, nil, PAnsiChar(FDatabase), PAnsiChar(FUser), PAnsiChar(FPassword));
-    FConnected := PQstatus(FConnection) = CONNECTION_OK;
-    result:= FConnected;
-    if not(FConnected) then begin
-      FLastErrorString:= GetError;
-      Disconnect;
-    end;
+  FConnection := PQsetdbLogin(PAnsiChar(FHost), PAnsiChar(FPort), nil, nil, PAnsiChar(FDatabase), PAnsiChar(FUser), PAnsiChar(FPassword));
+  FConnected := PQstatus(FConnection) = CONNECTION_OK;
+  result := FConnected;
+  if not(FConnected) then begin
+     FLastErrorString:= GetError;
+     Disconnect;
+  end;
 end;
 
 procedure TPostgres.Disconnect;
 begin
-    if FConnection = nil then exit;
-    FConnected:= false;
-    PQfinish(FConnection);
-    FConnection:= nil;
+  if FConnection = nil then
+     Exit;
+  FConnected := false;
+  PQfinish(FConnection);
+  FConnection:= nil;
 end;
 
 function TPostgres.IsConnected: Boolean;
 begin
-    Result := FConnected;
+  Result := FConnected;
 end;
 
 function TPostgres.GetDatabase: string;
 begin
-    Result := FDatabase;
+  Result := FDatabase;
 end;
 
 function TPostgres.GetError: string;
 begin
-    result:= PQerrorMessage(FConnection);
-    result:= Copy(result, 1, length(result) - 1);
+  result := PQerrorMessage(FConnection);
+  result := Copy(result, 1, length(result) - 1);
 end;
 
 function TPostgres.GetLastErrorString: string;
 begin
-    result:= FLastErrorString;
+  result := FLastErrorString;
 end;
 
 function TPostgres.GetConnection: PPGconn;
 begin
-    Result := FConnection;
+  Result := FConnection;
 end;
 
 function TPostgres.SendQuery(const SQL: String): boolean;
 begin
-    result:= PQsendQuery(FConnection, PAnsiChar(SQL)) <> 0;
+  result := PQsendQuery(FConnection, PAnsiChar(SQL)) <> 0;
 end;
 
 function TPostgres.ExecQuery(const SQL: String): IPostgresQuery;
 var
   pr: PPGresult;
 begin
-    result := nil;
-    if not(FConnected) then exit;
+  result := nil;
+  if not(FConnected) then exit;
 
-    pr := PQexec(FConnection, PAnsiChar(SQL));
-    result:= TPostgresQuery.Create(self, pr, nil);
+  pr := PQexec(FConnection, PAnsiChar(SQL));
+  result := TPostgresQuery.Create(self, pr, nil);
 end;
 
 function TPostgres.ExecQueryParams(const SQL: String; params: PParams): IPostgresQuery;
 var
   pr: PPGresult;
 begin
-    result := nil;
-    if not(FConnected) then exit;
+  result := nil;
+  if not(FConnected) then exit;
 
-    pr := PQexecParams(FConnection, PAnsiChar(SQL), params.nParams, params.paramTypes, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
-    result:= TPostgresQuery.Create(self, pr, params);
+  pr := PQexecParams(FConnection, PAnsiChar(SQL), params.nParams, params.paramTypes, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
+  result := TPostgresQuery.Create(self, pr, params);
 end;
 
 function TPostgres.Prepare(const SQL, StmtName: string; params: PParams): IPostgresStmt;
 var
   pr: PPGresult;
 begin
-    result := nil;
-    if not(FConnected) then exit;
+  result := nil;
+  if not(FConnected) then exit;
 
-    pr := PQprepare(FConnection, PAnsiChar(StmtName), PAnsiChar(SQL), params.nParams, params.paramTypes);
-    result:= TPostgresStmt.Create(self, StmtName, pr, params);
+  pr := PQprepare(FConnection, PAnsiChar(StmtName), PAnsiChar(SQL), params.nParams, params.paramTypes);
+  result := TPostgresStmt.Create(self, StmtName, pr, params);
 end;
 
 function TPostgres.ExecQueryPrepared(const StmtName: string; params: PParams): IPostgresQuery;
 var
   pr: PPGresult;
 begin
-    result := nil;
-    if not(FConnected) then exit;
+  result := nil;
+  if not(FConnected) then exit;
 
-    pr := PQexecPrepared(FConnection, PAnsiChar(StmtName), params.nParams, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
-    result:= TPostgresQuery.Create(self, pr, params);
+  pr := PQexecPrepared(FConnection, PAnsiChar(StmtName), params.nParams, params.paramValues, params.paramLengths, params.paramFormats, params.resultFormat);
+  result := TPostgresQuery.Create(self, pr, params);
 end;
 
 { TPostgresQuery }
 
 constructor TPostgresQuery.Create(APostgres: IPostgres; res: PPGresult; params: PParams);
 begin
-    FPPGresult := res;
-    FParams:= params;
+  FPPGresult := res;
+  FParams:= params;
 end;
 
 destructor TPostgresQuery.Destroy;
 begin
-    PQclear(FPPGresult);
-    inherited;
+  PQclear(FPPGresult);
+  inherited;
 end;
 
 function TPostgresQuery.GetQueryStatus: ExecStatusType;
 begin
-    result := PQresultStatus(FPPGresult);
+  result := PQresultStatus(FPPGresult);
 end;
 
 function TPostgresQuery.GetQueryStatusStr: string;
 begin
-    result := PQresStatus(PQresultStatus(FPPGresult));
+  result := PQresStatus(PQresultStatus(FPPGresult));
 end;
 
 function TPostgresQuery.GetRecordCount: Integer;
 begin
-    result := PQntuples(FPPGresult);
+  result := PQntuples(FPPGresult);
 end;
 
 function TPostgresQuery.GetFieldCount: Integer;
 begin
-    result := PQnfields(FPPGresult);
+  result := PQnfields(FPPGresult);
 end;
 
 function TPostgresQuery.GetValue(row, field: integer): PAnsiChar;
 begin
-    result:= PQgetvalue(FPPGresult, row, field);
+  result := PQgetvalue(FPPGresult, row, field);
 end;
 
 function TPostgresQuery.GetValueByName(row: integer; const fname: string): PAnsiChar;
 var
   idx: integer;
 begin
-    idx:= GetFieldIndex(fname);
-    result:= GetValue(row, idx);
+  idx := GetFieldIndex(fname);
+  result := GetValue(row, idx);
 end;
 
 function TPostgresQuery.GetValueLen(row, field: integer): integer;
 begin
-    result:= PQgetlength(FPPGresult, row, field);
+  result := PQgetlength(FPPGresult, row, field);
 end;
 
 function TPostgresQuery.GetValueLenByName(row: integer; const fname: string): integer;
 var
   idx: integer;
 begin
-    idx:= GetFieldIndex(fname);
-    result:= PQgetlength(FPPGresult, row, idx);
+  idx := GetFieldIndex(fname);
+  result := PQgetlength(FPPGresult, row, idx);
 end;
 
 function TPostgresQuery.GetFieldIndex(const fname: string): integer;
 begin
-    result:= PQfnumber(FPPGresult, PAnsiChar(fname));
+  result := PQfnumber(FPPGresult, PAnsiChar(fname));
 end;
 
 function TPostgresQuery.GetFieldName(idx: integer): string;
 begin
-    result:= PQfname(FPPGresult, idx);
+  result := PQfname(FPPGresult, idx);
 end;
 
 function TPostgresQuery.GetValueIsNull(row, field: integer): boolean;
 begin
-    result:= PQgetisnull(FPPGresult, row, field) <> 0;
+  result := PQgetisnull(FPPGresult, row, field) <> 0;
 end;
 
 { TPostgresStmt }
 
 constructor TPostgresStmt.Create(APostgres: IPostgres; const StmtName: string; res: PPGresult; params: PParams);
 begin
-    FPPGresult := res;
-    FParams:= params;
-    FStmtName:= StmtName;
+  FPPGresult := res;
+  FParams := params;
+  FStmtName:= StmtName;
 end;
 
 destructor TPostgresStmt.Destroy;
 begin
-    PQclear(FPPGresult);
-    inherited;
+  PQclear(FPPGresult);
+  inherited;
 end;
 
 function TPostgresStmt.GetQueryStatus: ExecStatusType;
 begin
-    result := PQresultStatus(FPPGresult);
+  result := PQresultStatus(FPPGresult);
 end;
 
 function TPostgresStmt.GetQueryStatusStr: string;
 begin
-    result := PQresStatus(PQresultStatus(FPPGresult));
+  result := PQresStatus(PQresultStatus(FPPGresult));
 end;
 
 function TPostgresStmt.GetStmtName: string;
 begin
-    result:= FStmtName;
+  result := FStmtName;
 end;
 
-end{$WARNINGS OFF}.
+end
+{$WARNINGS OFF}.
 
