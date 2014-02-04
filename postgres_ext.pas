@@ -1,3 +1,24 @@
+{-------------------------------------------------------------------------
+ *
+ * postgres_ext.h
+ *
+ *	   This file contains declarations of things that are visible everywhere
+ *	in PostgreSQL *and* are visible to clients of frontend interface libraries.
+ *	For example, the Oid type is part of the API of libpq and other libraries.
+ *
+ *	   Declarations which are specific to a particular interface should
+ *	go in the header file for that interface (such as libpq-fe.h).	This
+ *	file is only for fundamental Postgres declarations.
+ *
+ *	   User-written C functions don't count as "external to Postgres."
+ *	Those function much as local modifications to the backend itself, and
+ *	use header files that are otherwise internal to Postgres to interface
+ *	with the backend.
+ *
+ * src/include/postgres_ext.h
+ *
+ *-------------------------------------------------------------------------}
+
 unit postgres_ext;
 
 interface
@@ -38,43 +59,23 @@ Type
   PDouble   = ^Double;
 {$endif}
 
-{-------------------------------------------------------------------------
- *
- * postgres_ext.h
- *
- *	   This file contains declarations of things that are visible everywhere
- *	in PostgreSQL *and* are visible to clients of frontend interface libraries.
- *	For example, the Oid type is part of the API of libpq and other libraries.
- *
- *	   Declarations which are specific to a particular interface should
- *	go in the header file for that interface (such as libpq-fe.h).	This
- *	file is only for fundamental Postgres declarations.
- *
- *	   User-written C functions don't count as "external to Postgres."
- *	Those function much as local modifications to the backend itself, and
- *	use header files that are otherwise internal to Postgres to interface
- *	with the backend.
- *
- * src/include/postgres_ext.h
- *
- *-------------------------------------------------------------------------}
-
 { Object ID is a fundamental type in Postgres. }
+
   POid = ^Oid;
   Oid = dword;
 
-// New in Postgres 9.3.2
-{ Define a signed 64-bit integer type for use in client API declarations.  }
+  // New in Postgres 9.3.2
+  { Define a signed 64-bit integer type for use in client API declarations. }
   Ppg_int64 = ^pg_int64;
-  pg_int64 = PG_INT64_TYPE;
+  pg_int64 = Int64; // PG_INT64_TYPE;
 
-{ was #define dname def_expr }
-  function InvalidOid : Oid;
+  function InvalidOid: Oid;
 
 const
+
   // OID_MAX = UINT_MAX;
+  { you will need to include <limits.h> to use the above #define  }
   OID_MAX = MAXDWORD;
-{ you will need to include <limits.h> to use the above #define  }
 
 { Identifiers of error message fields.  Kept here to keep common
   between frontend and backend, and also to export them to libpq
@@ -103,9 +104,7 @@ const
 
 implementation
 
-{ was #define dname def_expr }
-
-function InvalidOid : Oid;
+function InvalidOid: Oid;
   begin
     InvalidOid := Oid(0);
   end;
