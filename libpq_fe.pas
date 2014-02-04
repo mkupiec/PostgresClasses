@@ -1,8 +1,9 @@
-
 unit libpq_fe;
+
 interface
 
-uses SysUtils, postgres_ext;
+uses
+  SysUtils, postgres_ext;
 
 {
   Automatically converted by H2Pas 1.0.0 from libpq-fe.h
@@ -160,8 +161,11 @@ type
                       PGRES_BAD_RESPONSE,
                       PGRES_NONFATAL_ERROR,
                       PGRES_FATAL_ERROR,
-                      PGRES_COPY_BOTH,                 // New in Postgres 9.3.2
-                      PGRES_SINGLE_TUPLE);             // New in Postgres 9.3.2
+
+                      // New in Postgres 9.3.2
+                      PGRES_COPY_BOTH,          // Copy In/Out data transfer in progress
+                      PGRES_SINGLE_TUPLE);      // single tuple from larger resultset
+                      
 { connection idle  }
 { command in progress  }
 { idle, within transaction block  }
@@ -183,11 +187,13 @@ type
      );
 
    // New in Postgres 9.3.2
+   { PGPing - The ordering of this enum should not be altered because the
+     values are exposed externally via pg_isready. }
    PPGPing = ^PGPing;
-   PGPing = ( PQPING_OK,            /* server is accepting connections */
-              PQPING_REJECT,        /* server is alive but rejecting connections */
-              PQPING_NO_RESPONSE,   /* could not establish connection */
-              PQPING_NO_ATTEMPT );  /* connection not attempted (bad params) */
+   PGPing = ( PQPING_OK,            // server is accepting connections 
+              PQPING_REJECT,        // server is alive but rejecting connections
+              PQPING_NO_RESPONSE,   // could not establish connection
+              PQPING_NO_ATTEMPT );  // connection not attempted (bad params)
 
 { PGconn encapsulates a connection to the backend.
  * The contents of this struct are not supposed to be known to applications.
@@ -346,6 +352,7 @@ type
 
 function PQconnectStart(conninfo:PAnsiChar):PPGconn; cdecl;
 
+// New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern PGconn *PQconnectStartParams(const char *const * keywords,
 					 const char *const * values, int expand_dbname);
@@ -356,7 +363,8 @@ function PQconnectPoll(conn:PPGconn):PostgresPollingStatusType; cdecl;
 
 function PQconnectdb(conninfo:PAnsiChar):PPGconn; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
+// New in Postgres 9.3.2
+{ /* New in Postgres 9.3.2: */
 extern PGconn *PQconnectdbParams(const char *const * keywords,
 				  const char *const * values, int expand_dbname);
 /* New in Postgres 9.3.2. */ }
@@ -373,7 +381,8 @@ function PQconndefaults:PPQconninfoOption; cdecl;
 
 function PQconninfoParse(conninfo:PAnsiChar; errmsg:PPchar):PPQconninfoOption; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
+// New in Postgres 9.3.2
+{ /* New in Postgres 9.3.2: */
 /* return the connection options used by a live connection */
 extern PQconninfoOption *PQconninfo(PGconn *conn);
 /* New in Postgres 9.3.2. */ }
@@ -461,9 +470,8 @@ function PQsendPrepare(conn:PPGconn; stmtName:PAnsiChar; query:PAnsiChar; nParam
 function PQsendQueryPrepared(conn:PPGconn; stmtName:PAnsiChar; nParams:longint; paramValues: PPChars; paramLengths:Plongint;
            paramFormats:Plongint; resultFormat:longint):longint; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
-extern int	PQsetSingleRowMode(PGconn *conn);
-/* New in Postgres 9.3.2. */ }
+// New in Postgres 9.3.2           
+function PQsetSingleRowMode(conn:PPGconn):longint; cdecl;
 
 function PQgetResult(conn:PPGconn):PPGresult; cdecl;
 { Routines for managing an asynchronous query  }
@@ -488,6 +496,7 @@ function PQsetnonblocking(conn:PPGconn; arg:longint):longint; cdecl;
 function PQisnonblocking(conn:PPGconn):longint; cdecl;
 function PQisthreadsafe:longint; cdecl;
 
+// New in Postgres 9.3.2
 { /* New in Postgres 9.3.2: */
 extern PGPing PQping(const char *conninfo);
 extern PGPing PQpingParams(const char *const * keywords,
@@ -563,10 +572,9 @@ function PQsetvalue(res:PPGresult; tup_num:longint; field_num:longint; value:PAn
 
 function PQescapeStringConn(conn:PPGconn; c_to:PAnsiChar; from:PAnsiChar; length:size_t; error:Plongint):size_t; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
-extern char *PQescapeLiteral(PGconn *conn, const char *str, size_t len);
-extern char *PQescapeIdentifier(PGconn *conn, const char *str, size_t len);
-/* New in Postgres 9.3.2. */ }
+// New in Postgres 9.3.2
+function PQescapeLiteral(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl;
+function PQescapeIdentifier(conn:PPGconn; str:PAnsiChar; len:size_t):PAnsiChar; cdecl;
 
 function PQescapeByteaConn(conn:PPGconn; from:PByte; from_length:size_t; to_length:Psize_t):PByte; cdecl;
 function PQunescapeBytea(strtext:PByte; retbuflen:Psize_t):PByte; cdecl;
@@ -605,7 +613,8 @@ function lo_read(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; c
 function lo_write(conn:PPGconn; fd:longint; buf:PAnsiChar; len:size_t):longint; cdecl;
 function lo_lseek(conn:PPGconn; fd:longint; offset:longint; whence:longint):longint; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
+// New in Postgres 9.3.2
+{ /* New in Postgres 9.3.2: */
 extern pg_int64 lo_lseek64(PGconn *conn, int fd, pg_int64 offset, int whence);
 /* New in Postgres 9.3.2. */ }
 
@@ -613,13 +622,15 @@ function lo_creat(conn:PPGconn; mode:longint):Oid; cdecl;
 function lo_create(conn:PPGconn; lobjId:Oid):Oid; cdecl;
 function lo_tell(conn:PPGconn; fd:longint):longint; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
+// New in Postgres 9.3.2
+{ /* New in Postgres 9.3.2: */
 extern pg_int64 lo_tell64(PGconn *conn, int fd);
 /* New in Postgres 9.3.2. */ }
 
 function lo_truncate(conn:PPGconn; fd:longint; len:size_t):longint; cdecl;
 
-{ /* New in Postgres 9.3.2: */	
+// New in Postgres 9.3.2
+{ /* New in Postgres 9.3.2: */
 extern int	lo_truncate64(PGconn *conn, int fd, pg_int64 len);
 /* New in Postgres 9.3.2. */ }
 
@@ -632,10 +643,9 @@ function lo_import_with_oid(conn:PPGconn; filename:PAnsiChar; lobjId:Oid):Oid; c
 function lo_export(conn:PPGconn; lobjId:Oid; filename:PAnsiChar):longint; cdecl;
 { === in fe-misc.c ===  }
 
-{ /* New in Postgres 9.3.2: */	
-/* Get the version of the libpq library in use */
-extern int	PQlibVersion(void);
-/* New in Postgres 9.3.2. */ }
+// New in Postgres 9.3.2
+{ Get the version of the libpq library in use }
+function PQlibVersion:longint; cdecl;
 
 { Determine length of multibyte encoded char at *s  }
 
